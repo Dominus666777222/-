@@ -40,7 +40,24 @@ enum class ConverterCategory(val displayName: String) {
     SPEED("Speed"),
     PRESSURE("Pressure"),
     ENERGY("Energy"),
-    AI_TRANSLATOR("AI Smart Translator")
+    FORCE("Force"),
+    FREQUENCY("Frequency"),
+    DENSITY("Density"),
+    ANGLE("Angle")
+}
+
+sealed interface ActiveTool {
+    object Menu : ActiveTool
+    data class Converter(val category: ConverterCategory) : ActiveTool
+    object Bmi : ActiveTool
+    object DateCalc : ActiveTool
+}
+
+sealed interface AppScreen {
+    object Calculator : AppScreen
+    object Tools : AppScreen
+    object Settings : AppScreen
+    object History : AppScreen
 }
 
 class CalculatorViewModel(
@@ -55,6 +72,44 @@ class CalculatorViewModel(
         private set
     var appLanguage by mutableStateOf("en") // "en", "ru", "uk", "be", "kk", "es", "pl", "de"
         private set
+
+    // --- Tools Editing State ---
+    var isEditMode by mutableStateOf(false)
+
+    var toolsOrder by mutableStateOf<List<String>>(emptyList())
+        private set
+
+    var hiddenTools by mutableStateOf<Set<String>>(emptySet())
+        private set
+
+    fun loadToolsConfig() {
+        val defaultListStr = "currency,length,temp,weight,area,volume,data,binary,time,speed,pressure,energy,bmi,date,force,frequency,density,angle"
+        val savedOrder = sharedPrefs.getString("tools_order", defaultListStr) ?: defaultListStr
+        toolsOrder = savedOrder.split(",").filter { it.isNotEmpty() }
+
+        val savedHidden = sharedPrefs.getString("hidden_tools", "force,frequency,density,angle") ?: "force,frequency,density,angle"
+        hiddenTools = savedHidden.split(",").filter { it.isNotEmpty() }.toSet()
+    }
+
+    fun toggleToolVisibility(toolId: String) {
+        val currentHidden = hiddenTools.toMutableSet()
+        if (currentHidden.contains(toolId)) {
+            currentHidden.remove(toolId)
+        } else {
+            currentHidden.add(toolId)
+        }
+        hiddenTools = currentHidden
+        sharedPrefs.edit().putString("hidden_tools", hiddenTools.joinToString(",")).apply()
+    }
+
+    fun updateToolsOrder(newOrder: List<String>) {
+        toolsOrder = newOrder
+        sharedPrefs.edit().putString("tools_order", toolsOrder.joinToString(",")).apply()
+    }
+
+    // --- Global Navigation State ---
+    var currentScreen by mutableStateOf<AppScreen>(AppScreen.Calculator)
+    var activeTool by mutableStateOf<ActiveTool>(ActiveTool.Menu)
 
     // --- Calculator State ---
     var calculatorInput by mutableStateOf("")
@@ -149,7 +204,9 @@ class CalculatorViewModel(
             "de" -> "de"
             else -> "en"
         }
-        appLanguage = sharedPrefs.getString("app_language", defaultLang) ?: defaultLang
+        appLanguage = defaultLang
+        
+        loadToolsConfig()
         
         triggerConversion()
         calculateBmi(saveToHistory = false)
@@ -578,6 +635,68 @@ class CalculatorViewModel(
                     }
                     valueVal * toJoule * fromJoule
                 }
+                ConverterCategory.FORCE -> {
+                    val toNewton = when (sourceUnit) {
+                        "Newton (N)" -> 1.0
+                        "Kilonewton (kN)" -> 1000.0
+                        "Pound-force (lbf)" -> 4.44822
+                        else -> 1.0
+                    }
+                    val fromNewton = when (targetUnit) {
+                        "Newton (N)" -> 1.0
+                        "Kilonewton (kN)" -> 0.001
+                        "Pound-force (lbf)" -> 1.0 / 4.44822
+                        else -> 1.0
+                    }
+                    valueVal * toNewton * fromNewton
+                }
+                ConverterCategory.FREQUENCY -> {
+                    val toHz = when (sourceUnit) {
+                        "Hertz (Hz)" -> 1.0
+                        "Kilohertz (kHz)" -> 1000.0
+                        "Megahertz (MHz)" -> 1000000.0
+                        "Gigahertz (GHz)" -> 1000000000.0
+                        else -> 1.0
+                    }
+                    val fromHz = when (targetUnit) {
+                        "Hertz (Hz)" -> 1.0
+                        "Kilohertz (kHz)" -> 0.001
+                        "Megahertz (MHz)" -> 0.000001
+                        "Gigahertz (GHz)" -> 0.000000001
+                        else -> 1.0
+                    }
+                    valueVal * toHz * fromHz
+                }
+                ConverterCategory.DENSITY -> {
+                    val toKgM3 = when (sourceUnit) {
+                        "kg/m³" -> 1.0
+                        "g/cm³" -> 1000.0
+                        "lb/ft³" -> 16.0185
+                        else -> 1.0
+                    }
+                    val fromKgM3 = when (targetUnit) {
+                        "kg/m³" -> 1.0
+                        "g/cm³" -> 0.001
+                        "lb/ft³" -> 1.0 / 16.0185
+                        else -> 1.0
+                    }
+                    valueVal * toKgM3 * fromKgM3
+                }
+                ConverterCategory.ANGLE -> {
+                    val toDegree = when (sourceUnit) {
+                        "Degree (°)" -> 1.0
+                        "Radian (rad)" -> 57.2958
+                        "Gradian (grad)" -> 0.9
+                        else -> 1.0
+                    }
+                    val fromDegree = when (targetUnit) {
+                        "Degree (°)" -> 1.0
+                        "Radian (rad)" -> 1.0 / 57.2958
+                        "Gradian (grad)" -> 1.0 / 0.9
+                        else -> 1.0
+                    }
+                    valueVal * toDegree * fromDegree
+                }
                 else -> valueVal
             }
             formatDouble(result)
@@ -609,7 +728,10 @@ class CalculatorViewModel(
             ConverterCategory.SPEED -> Pair("m/s", "km/h")
             ConverterCategory.PRESSURE -> Pair("Pascal (Pa)", "Bar (bar)")
             ConverterCategory.ENERGY -> Pair("Joule (J)", "Kilojoule (kJ)")
-            ConverterCategory.AI_TRANSLATOR -> Pair("", "")
+            ConverterCategory.FORCE -> Pair("Newton (N)", "Kilonewton (kN)")
+            ConverterCategory.FREQUENCY -> Pair("Hertz (Hz)", "Kilohertz (kHz)")
+            ConverterCategory.DENSITY -> Pair("kg/m³", "g/cm³")
+            ConverterCategory.ANGLE -> Pair("Degree (°)", "Radian (rad)")
         }
     }
 
@@ -627,7 +749,10 @@ class CalculatorViewModel(
             ConverterCategory.SPEED -> listOf("m/s", "km/h", "mph", "knots")
             ConverterCategory.PRESSURE -> listOf("Pascal (Pa)", "Bar (bar)", "Atmosphere (atm)", "psi")
             ConverterCategory.ENERGY -> listOf("Joule (J)", "Kilojoule (kJ)", "Calorie (cal)", "Kilocalorie (kcal)", "Watt-hour (Wh)", "Kilowatt-hour (kWh)")
-            ConverterCategory.AI_TRANSLATOR -> emptyList()
+            ConverterCategory.FORCE -> listOf("Newton (N)", "Kilonewton (kN)", "Pound-force (lbf)")
+            ConverterCategory.FREQUENCY -> listOf("Hertz (Hz)", "Kilohertz (kHz)", "Megahertz (MHz)", "Gigahertz (GHz)")
+            ConverterCategory.DENSITY -> listOf("kg/m³", "g/cm³", "lb/ft³")
+            ConverterCategory.ANGLE -> listOf("Degree (°)", "Radian (rad)", "Gradian (grad)")
         }
     }
 

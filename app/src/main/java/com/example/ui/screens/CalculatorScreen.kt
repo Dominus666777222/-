@@ -154,7 +154,7 @@ fun CalculatorScreen(
                                 isScientific = isSci,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .aspectRatio(if (isSci) 1.25f else 1f)
+                                    .aspectRatio(1f)
                             )
                         }
                     }

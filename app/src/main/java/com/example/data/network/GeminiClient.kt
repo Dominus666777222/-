@@ -102,58 +102,38 @@ object GeminiClient {
     }
 
     /**
-     * Special function to fetch live currency rates relative to USD from Gemini.
+     * Special function to fetch live currency rates relative to USD from open.er-api.com.
      */
-    suspend fun fetchLiveRates(): Map<String, Double>? {
-        val prompt = """
-            Please return standard estimated currency exchange rates relative to USD (1 USD = ... ) as a raw JSON object.
-            Do not include any Markdown tags, code block wrappers like ```json or any other text before or after the JSON. Just return the raw JSON text.
-            The JSON MUST contain these exact keys for currency codes, with standard reasonable approximate values:
-            USD, EUR, GBP, JPY, CAD, AUD, CNY, INR, BRL, RUB, BYN, UAH, KZT.
-            Example response format:
-            {
-              "USD": 1.0,
-              "EUR": 0.92,
-              "GBP": 0.78,
-              "JPY": 158.5,
-              "CAD": 1.37,
-              "AUD": 1.50,
-              "CNY": 7.26,
-              "INR": 83.5,
-              "BRL": 5.45,
-              "RUB": 90.0,
-              "BYN": 3.25,
-              "UAH": 41.0,
-              "KZT": 475.0
-            }
-        """.trimIndent()
-
-        val systemInstruction = "You are a reliable, up-to-date currency rate service that only outputs raw JSON. Do not write markdown, code fences, or natural language comments."
-        val result = generateText(prompt, systemInstruction)
-        
-        if (result == "API_KEY_MISSING" || result.startsWith("ERROR")) {
-            return null
-        }
-
-        return try {
-            // Clean any potential markdown wrapper if the model didn't obey instructions
-            val cleanedResult = result.trim()
-                .removePrefix("```json")
-                .removePrefix("```")
-                .removeSuffix("```")
-                .trim()
-                
-            val json = JSONObject(cleanedResult)
-            val ratesMap = mutableMapOf<String, Double>()
-            val keys = listOf("USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CNY", "INR", "BRL", "RUB", "BYN", "UAH", "KZT")
-            for (key in keys) {
-                if (json.has(key)) {
-                    ratesMap[key] = json.getDouble(key)
+    suspend fun fetchLiveRates(): Map<String, Double>? = withContext(Dispatchers.IO) {
+        val url = "https://open.er-api.com/v6/latest/USD"
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Log.e(TAG, "API error: ${response.code}")
+                    return@withContext null
+                }
+                val responseStr = response.body?.string() ?: return@withContext null
+                val root = JSONObject(responseStr)
+                if (root.optString("result") == "success") {
+                    val rates = root.optJSONObject("rates") ?: return@withContext null
+                    val ratesMap = mutableMapOf<String, Double>()
+                    val keys = listOf("USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CNY", "INR", "BRL", "RUB", "BYN", "UAH", "KZT")
+                    for (key in keys) {
+                        if (rates.has(key)) {
+                            ratesMap[key] = rates.getDouble(key)
+                        }
+                    }
+                    if (ratesMap.isNotEmpty()) ratesMap else null
+                } else {
+                    null
                 }
             }
-            if (ratesMap.isNotEmpty()) ratesMap else null
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to parse live rates: $result", e)
+            Log.e(TAG, "Failed to fetch live rates from open.er-api.com", e)
             null
         }
     }

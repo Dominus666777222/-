@@ -56,154 +56,6 @@ fun ConverterScreen(
     ) {
 
 
-        if (viewModel.converterCategory == ConverterCategory.AI_TRANSLATOR) {
-            // --- AI SMART TRANSLATOR LAYOUT ---
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = "AI",
-                                tint = MaterialTheme.colorScheme.tertiary
-                            )
-                            Text(
-                                text = Translator.translate("ai_translator", lang),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                        }
-
-                        Text(
-                            text = Translator.translate("ai_translator_desc", lang),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
-                        )
-
-                        OutlinedTextField(
-                            value = viewModel.aiPrompt,
-                            onValueChange = { viewModel.aiPrompt = it },
-                            placeholder = { Text(Translator.translate("ai_prompt_placeholder", lang)) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .testTag("ai_prompt_input"),
-                            shape = RoundedCornerShape(12.dp),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    focusManager.clearFocus()
-                                    viewModel.submitAiTranslation()
-                                }
-                            ),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                            )
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    focusManager.clearFocus()
-                                    viewModel.submitAiTranslation()
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag("ai_submit_btn"),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiary
-                                )
-                            ) {
-                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(Translator.translate("ask_gemini", lang))
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    viewModel.clearAiTranslation()
-                                }
-                            ) {
-                                Text(Translator.translate("clear", lang))
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                AnimatedVisibility(
-                    visible = viewModel.isAiLoading || viewModel.aiResult.isNotEmpty(),
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        border = CardDefaults.outlinedCardBorder()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = Translator.translate("ai_result_title", lang),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                if (viewModel.isAiLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(20.dp),
-                                        strokeWidth = 2.dp,
-                                        color = MaterialTheme.colorScheme.tertiary
-                                    )
-                                }
-                            }
-
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                            SelectionContainer {
-                                Text(
-                                    text = parseMarkdown(viewModel.aiResult),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.testTag("ai_result_text")
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
             // --- STANDARD DUAL-INPUT TRANSLATOR LAYOUT ---
             
             // Currency Live Rate Sync Panel
@@ -223,7 +75,9 @@ fun ConverterScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
                                 val translatedStatus = when (viewModel.rateSyncStatus) {
                                     "Fallbacks Active" -> if (lang == "ru") "Резервные курсы активны" else "Fallbacks Active"
                                     "Rates Synced via Gemini" -> if (lang == "ru") "Курсы синхронизированы" else "Rates Synced via Gemini"
@@ -241,6 +95,8 @@ fun ConverterScreen(
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                                 )
                             }
+
+                            Spacer(modifier = Modifier.width(12.dp))
 
                             Button(
                                 onClick = {
@@ -431,7 +287,6 @@ fun ConverterScreen(
                     Text(Translator.translate("save_to_history", lang))
                 }
             }
-        }
     }
 }
 

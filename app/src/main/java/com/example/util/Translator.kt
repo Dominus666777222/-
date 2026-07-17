@@ -77,7 +77,14 @@ object Translator {
             "from_unit" to "From Unit",
             "to_unit" to "To Unit",
             "save_to_history" to "Save to History",
-            "to" to "to"
+            "to" to "to",
+            "force" to "Force",
+            "frequency" to "Frequency",
+            "density" to "Density",
+            "angle" to "Angle",
+            "hidden" to "Hidden Tools",
+            "edit_mode" to "Edit Mode",
+            "hidden_desc" to "Tap plus (+) to restore a tool."
         ),
         "ru" to mapOf(
             "app_name" to "MD3 калькулятор",
@@ -153,7 +160,14 @@ object Translator {
             "from_unit" to "Исходная единица",
             "to_unit" to "Целевая единица",
             "save_to_history" to "Сохранить в историю",
-            "to" to "в"
+            "to" to "в",
+            "force" to "Сила",
+            "frequency" to "Частота",
+            "density" to "Плотность",
+            "angle" to "Угол",
+            "hidden" to "Скрытые инструменты",
+            "edit_mode" to "Режим редактирования",
+            "hidden_desc" to "Нажмите плюс (+), чтобы восстановить инструмент."
         ),
         "uk" to mapOf(
             "app_name" to "MD3 Калькулятор",
@@ -690,7 +704,24 @@ object Translator {
             "Calorie (cal)" to "Calorie (cal)",
             "Kilocalorie (kcal)" to "Kilocalorie (kcal)",
             "Watt-hour (Wh)" to "Watt-hour (Wh)",
-            "Kilowatt-hour (kWh)" to "Kilowatt-hour (kWh)"
+            "Kilowatt-hour (kWh)" to "Kilowatt-hour (kWh)",
+            // Force
+            "Newton (N)" to "Newton (N)",
+            "Kilonewton (kN)" to "Kilonewton (kN)",
+            "Pound-force (lbf)" to "Pound-force (lbf)",
+            // Frequency
+            "Hertz (Hz)" to "Hertz (Hz)",
+            "Kilohertz (kHz)" to "Kilohertz (kHz)",
+            "Megahertz (MHz)" to "Megahertz (MHz)",
+            "Gigahertz (GHz)" to "Gigahertz (GHz)",
+            // Density
+            "kg/m³" to "kg/m³",
+            "g/cm³" to "g/cm³",
+            "lb/ft³" to "lb/ft³",
+            // Angle
+            "Degree (°)" to "Degree (°)",
+            "Radian (rad)" to "Radian (rad)",
+            "Gradian (grad)" to "Gradian (grad)"
         ),
         "ru" to mapOf(
             // Length
@@ -768,7 +799,24 @@ object Translator {
             "Calorie (cal)" to "Калория (кал)",
             "Kilocalorie (kcal)" to "Килокалория (ккал)",
             "Watt-hour (Wh)" to "Ватт-час (Вт·ч)",
-            "Kilowatt-hour (kWh)" to "Киловатт-час (кВт·ч)"
+            "Kilowatt-hour (kWh)" to "Киловатт-час (кВт·ч)",
+            // Force
+            "Newton (N)" to "Ньютон (Н)",
+            "Kilonewton (kN)" to "Килоньютон (кН)",
+            "Pound-force (lbf)" to "Фунт-сила (фунт-с)",
+            // Frequency
+            "Hertz (Hz)" to "Герц (Гц)",
+            "Kilohertz (kHz)" to "Килогерц (кГц)",
+            "Megahertz (MHz)" to "Мегагерц (МГц)",
+            "Gigahertz (GHz)" to "Гигагерц (ГГц)",
+            // Density
+            "kg/m³" to "кг/м³",
+            "g/cm³" to "г/см³",
+            "lb/ft³" to "фунт/фут³",
+            // Angle
+            "Degree (°)" to "Градус (°)",
+            "Radian (rad)" to "Радиан (рад)",
+            "Gradian (grad)" to "Градиан (град)"
         ),
         "uk" to mapOf(
             // Length
@@ -1241,12 +1289,211 @@ object Translator {
     )
 
     fun translate(key: String, langCode: String): String {
+        // Special mapping for history item types
+        when (key) {
+            "MATH" -> return when (langCode) {
+                "ru" -> "Калькулятор"
+                "uk" -> "Калькулятор"
+                "be" -> "Калькулятар"
+                "kk" -> "Калькулятор"
+                "es" -> "Calculadora"
+                "pl" -> "Kalkulator"
+                "de" -> "Rechner"
+                else -> "Calculator"
+            }
+            "CONVERTER" -> return when (langCode) {
+                "ru" -> "Конвертер"
+                "uk" -> "Конвертер"
+                "be" -> "Канвертар"
+                "kk" -> "Конвертер"
+                "es" -> "Conversor"
+                "pl" -> "Konwerter"
+                "de" -> "Konverter"
+                else -> "Converter"
+            }
+            "BMI" -> return when (langCode) {
+                "ru" -> "ИМТ"
+                "uk" -> "ІМТ"
+                "be" -> "ІМТ"
+                "kk" -> "ДМД"
+                "es" -> "IMC"
+                "pl" -> "BMI"
+                "de" -> "BMI"
+                else -> "BMI"
+            }
+            "DATE_CALC" -> return when (langCode) {
+                "ru" -> "Счётчик дат"
+                "uk" -> "Счётчик дат"
+                "be" -> "Лічыльнік дат"
+                "kk" -> "Күн есептегіші"
+                "es" -> "Cálculo de Fechas"
+                "pl" -> "Kalkulator Dat"
+                "de" -> "Datumsrechner"
+                else -> "Date Calc"
+            }
+        }
         val langMap = translations[langCode] ?: translations["en"]!!
         return langMap[key] ?: translations["en"]!![key] ?: key
     }
 
+    private val currencyNames = mapOf(
+        "en" to mapOf(
+            "USD" to "US Dollar",
+            "EUR" to "Euro",
+            "GBP" to "British Pound",
+            "JPY" to "Japanese Yen",
+            "CAD" to "Canadian Dollar",
+            "AUD" to "Australian Dollar",
+            "CNY" to "Chinese Yuan",
+            "INR" to "Indian Rupee",
+            "BRL" to "Brazilian Real",
+            "RUB" to "Russian Ruble",
+            "BYN" to "Belarusian Ruble",
+            "UAH" to "Ukrainian Hryvnia",
+            "KZT" to "Kazakhstani Tenge"
+        ),
+        "ru" to mapOf(
+            "USD" to "Доллар США",
+            "EUR" to "Евро",
+            "GBP" to "Фунт стерлингов",
+            "JPY" to "Иена",
+            "CAD" to "Канадский доллар",
+            "AUD" to "Австралийский доллар",
+            "CNY" to "Юань",
+            "INR" to "Индийская рупия",
+            "BRL" to "Бразильский реал",
+            "RUB" to "Российский рубль",
+            "BYN" to "Белорусский рубль",
+            "UAH" to "Украинская гривна",
+            "KZT" to "Казахстанский тенге"
+        ),
+        "uk" to mapOf(
+            "USD" to "Долар США",
+            "EUR" to "Євро",
+            "GBP" to "Фунт стерлінгів",
+            "JPY" to "Єна",
+            "CAD" to "Канадський долар",
+            "AUD" to "Австралійський долар",
+            "CNY" to "Юань",
+            "INR" to "Індійська рупія",
+            "BRL" to "Бразильський реал",
+            "RUB" to "Російський рубль",
+            "BYN" to "Білоруський рубль",
+            "UAH" to "Українська гривня",
+            "KZT" to "Казахстанський тенге"
+        ),
+        "be" to mapOf(
+            "USD" to "Даляр ЗША",
+            "EUR" to "Еўра",
+            "GBP" to "Фунт стэрлінгаў",
+            "JPY" to "Іена",
+            "CAD" to "Канадскі даляр",
+            "AUD" to "Аўстралійскі даляр",
+            "CNY" to "Юань",
+            "INR" to "Індыйская рупія",
+            "BRL" to "Бразільскі рэал",
+            "RUB" to "Расійскі рубель",
+            "BYN" to "Беларускі рубель",
+            "UAH" to "Украінская грыўня",
+            "KZT" to "Казахстанскі тэнге"
+        ),
+        "kk" to mapOf(
+            "USD" to "АҚШ доллары",
+            "EUR" to "Евро",
+            "GBP" to "Британ фунты",
+            "JPY" to "Иена",
+            "CAD" to "Канада доллары",
+            "AUD" to "Австралия доллары",
+            "CNY" to "Юань",
+            "INR" to "Үнді рупиясы",
+            "BRL" to "Бразилия реалы",
+            "RUB" to "Ресей рублі",
+            "BYN" to "Беларусь рублі",
+            "UAH" to "Украина гривнасы",
+            "KZT" to "Қазақстан теңгесі"
+        ),
+        "es" to mapOf(
+            "USD" to "Dólar estadounidense",
+            "EUR" to "Euro",
+            "GBP" to "Libra esterlina",
+            "JPY" to "Yen japonés",
+            "CAD" to "Dólar canadiense",
+            "AUD" to "Dólar australiano",
+            "CNY" to "Yuan chino",
+            "INR" to "Rupia india",
+            "BRL" to "Real brasileño",
+            "RUB" to "Rublo ruso",
+            "BYN" to "Rublo bielorruso",
+            "UAH" to "Grivna ucraniana",
+            "KZT" to "Tenge kazajo"
+        ),
+        "pl" to mapOf(
+            "USD" to "Dolar amerykański",
+            "EUR" to "Euro",
+            "GBP" to "Funt szterling",
+            "JPY" to "Jen japoński",
+            "CAD" to "Dolar kanadyjski",
+            "AUD" to "Dolar australijski",
+            "CNY" to "Yuan chiński",
+            "INR" to "Rupia indyjska",
+            "BRL" to "Real brazylijski",
+            "RUB" to "Rubel rosyjski",
+            "BYN" to "Rubel białoruski",
+            "UAH" to "Hrywna ukraińska",
+            "KZT" to "Tenge kazachskie"
+        ),
+        "de" to mapOf(
+            "USD" to "US-Dollar",
+            "EUR" to "Euro",
+            "GBP" to "Britisches Pfund",
+            "JPY" to "Japanischer Yen",
+            "CAD" to "Kanadischer Dollar",
+            "AUD" to "Australischer Dollar",
+            "CNY" to "Chinesischer Yuan",
+            "INR" to "Indische Rupie",
+            "BRL" to "Brasilianischer Real",
+            "RUB" to "Russischer Rubel",
+            "BYN" to "Weißrussischer Rubel",
+            "UAH" to "Ukrainische Hrywnja",
+            "KZT" to "Kasachischer Tenge"
+        )
+    )
+
+    fun getEnglishAbbreviation(unitKey: String): String {
+        val engText = unitTranslations["en"]?.get(unitKey) ?: unitKey
+        val openParen = engText.lastIndexOf('(')
+        val closeParen = engText.lastIndexOf(')')
+        return if (openParen != -1 && closeParen != -1 && closeParen > openParen + 1) {
+            engText.substring(openParen + 1, closeParen).trim()
+        } else {
+            if (unitKey.length <= 4) unitKey else {
+                when (unitKey) {
+                    "acre" -> "ac"
+                    "cup" -> "cup"
+                    "Decimal" -> "Dec"
+                    "Binary" -> "Bin"
+                    "Hexadecimal" -> "Hex"
+                    "Octal" -> "Oct"
+                    else -> unitKey
+                }
+            }
+        }
+    }
+
     fun translateUnit(unitKey: String, langCode: String): String {
+        val currencyMap = currencyNames[langCode] ?: currencyNames["en"]!!
+        if (currencyMap.containsKey(unitKey)) {
+            val localName = currencyMap[unitKey] ?: unitKey
+            return "$localName ($unitKey)"
+        }
+
         val langMap = unitTranslations[langCode] ?: unitTranslations["en"]!!
-        return langMap[unitKey] ?: unitTranslations["en"]!![unitKey] ?: unitKey
+        val localText = langMap[unitKey] ?: unitTranslations["en"]!![unitKey] ?: unitKey
+
+        val openParen = localText.indexOf('(')
+        val baseText = if (openParen != -1) localText.substring(0, openParen).trim() else localText
+
+        val engAbbr = getEnglishAbbreviation(unitKey)
+        return "$baseText ($engAbbr)"
     }
 }
