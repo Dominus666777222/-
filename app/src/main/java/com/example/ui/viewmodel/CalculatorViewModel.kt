@@ -354,6 +354,21 @@ class CalculatorViewModel(
         }
     }
 
+    fun onConverterTargetValueChanged(newValue: String) {
+        if (converterCategory == ConverterCategory.NUMBER_SYSTEMS) {
+            val cleaned = newValue.trim()
+            if (cleaned.isEmpty() || cleaned.matches(Regex("^[0-9a-fA-F]*$"))) {
+                converterTargetValue = cleaned.uppercase()
+                triggerBackwardConversion()
+            }
+        } else {
+            if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                converterTargetValue = newValue
+                triggerBackwardConversion()
+            }
+        }
+    }
+
     fun onConverterUnitSwapped() {
         val temp = converterSourceUnit
         converterSourceUnit = converterTargetUnit
@@ -415,6 +430,52 @@ class CalculatorViewModel(
             valueVal = parsedVal
         )
         converterTargetValue = converted
+    }
+
+    private fun triggerBackwardConversion() {
+        val value = converterTargetValue
+        if (value.isEmpty() || value == ".") {
+            converterSourceValue = ""
+            return
+        }
+
+        if (converterCategory == ConverterCategory.NUMBER_SYSTEMS) {
+            converterSourceValue = try {
+                val sourceBase = when (converterSourceUnit) {
+                    "Binary" -> 2
+                    "Octal" -> 8
+                    "Decimal" -> 10
+                    "Hexadecimal" -> 16
+                    else -> 10
+                }
+                val targetBase = when (converterTargetUnit) {
+                    "Binary" -> 2
+                    "Octal" -> 8
+                    "Decimal" -> 10
+                    "Hexadecimal" -> 16
+                    else -> 10
+                }
+                val parsedLong = value.toLong(targetBase)
+                parsedLong.toString(sourceBase).uppercase()
+            } catch (e: Exception) {
+                "Error"
+            }
+            return
+        }
+
+        val parsedVal = value.toDoubleOrNull()
+        if (parsedVal == null) {
+            converterSourceValue = "Error"
+            return
+        }
+
+        val converted = performConversion(
+            category = converterCategory,
+            sourceUnit = converterTargetUnit,
+            targetUnit = converterSourceUnit,
+            valueVal = parsedVal
+        )
+        converterSourceValue = converted
     }
 
     private fun performConversion(
@@ -720,10 +781,10 @@ class CalculatorViewModel(
 
     private fun formatDouble(d: Double): String {
         return try {
-            val bd = BigDecimal(d).setScale(6, RoundingMode.HALF_UP).stripTrailingZeros()
+            val bd = BigDecimal(d).setScale(5, RoundingMode.HALF_UP).stripTrailingZeros()
             bd.toPlainString()
         } catch (e: Exception) {
-            String.format("%.4f", d).trimEnd('0').trimEnd('.')
+            String.format("%.5f", d).trimEnd('0').trimEnd('.')
         }
     }
 

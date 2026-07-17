@@ -63,13 +63,8 @@ jobs:
         STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
-        if [ -f app/my-upload-key.jks ] && [ -n "${{ secrets.STORE_PASSWORD }}" ] && [ -n "${{ secrets.KEY_PASSWORD }}" ]; then
-          echo "Building signed Release APK..."
-          ./gradlew assembleRelease
-        else
-          echo "Building Debug APK..."
-          ./gradlew assembleDebug
-        fi
+        echo "Building optimized Release APK..."
+        ./gradlew assembleRelease
 
     - name: Locate and Prepare APK
       id: locate_apk
@@ -78,12 +73,8 @@ jobs:
           echo "Found release APK!"
           cp app/build/outputs/apk/release/app-release.apk GoydaCalc_1_5.apk
           echo "signed=true" >> $GITHUB_OUTPUT
-        elif [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
-          echo "Found debug APK!"
-          cp app/build/outputs/apk/debug/app-debug.apk GoydaCalc_1_5.apk
-          echo "signed=false" >> $GITHUB_OUTPUT
         else
-          echo "Error: No APK found!"
+          echo "Error: No release APK found!"
           exit 1
         fi
 

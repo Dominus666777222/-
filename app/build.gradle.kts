@@ -41,10 +41,23 @@ android {
 
   buildTypes {
     release {
-      isCrunchPngs = false
-      isMinifyEnabled = false
+      isCrunchPngs = true
+      isMinifyEnabled = true
+      isShrinkResources = false // Set to false to avoid shrinking any dynamically used resources, super safe
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("release")
+      
+      val storePassword = System.getenv("STORE_PASSWORD")
+      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
+      if (!storePassword.isNullOrEmpty() && file(keystorePath).exists()) {
+        signingConfig = signingConfigs.getByName("release")
+      } else {
+        val customDebugKeystore = file("${rootDir}/debug.keystore")
+        if (customDebugKeystore.exists()) {
+          signingConfig = signingConfigs.getByName("debugConfig")
+        } else {
+          signingConfig = signingConfigs.getByName("debug")
+        }
+      }
     }
     debug {
       val customDebugKeystore = file("${rootDir}/debug.keystore")

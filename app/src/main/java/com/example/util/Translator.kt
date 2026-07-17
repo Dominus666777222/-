@@ -754,12 +754,12 @@ object Translator {
             "sq mile (mi²)" to "кв. мили (ми²)",
             "sq yard (yd²)" to "кв. ярды (ярд²)",
             "sq foot (ft²)" to "кв. футы (фт²)",
-            "acre" to "акры",
+            "acre" to "акры (акр)",
             // Volume
             "liter (L)" to "литры (л)",
             "ml" to "миллилитры (мл)",
             "gallon (gal)" to "галлоны (гал)",
-            "cup" to "чашки",
+            "cup" to "чашки (чш)",
             // Data Storage
             "Bit (b)" to "Бит (б)",
             "Byte (B)" to "Байт (Б)",
@@ -772,10 +772,10 @@ object Translator {
             "Terabit (Tb)" to "Терабит (Тб)",
             "Terabyte (TB)" to "Терабайт (ТБ)",
             // Number Systems
-            "Decimal" to "Десятичная",
-            "Binary" to "Двоичная",
-            "Hexadecimal" to "Шестнадцатеричная",
-            "Octal" to "Восьмеричная",
+            "Decimal" to "Десятичная (Dec)",
+            "Binary" to "Двоичная (Bin)",
+            "Hexadecimal" to "Шестнадцатеричная (Hex)",
+            "Octal" to "Восьмеричная (Oct)",
             // Time
             "Second (s)" to "Секунда (с)",
             "Minute (min)" to "Минута (мин)",
@@ -787,12 +787,12 @@ object Translator {
             "m/s" to "м/с",
             "km/h" to "км/ч",
             "mph" to "миль/ч",
-            "knots" to "узлы",
+            "knots" to "узлы (уз)",
             // Pressure
             "Pascal (Pa)" to "Паскаль (Па)",
             "Bar (bar)" to "Бар (бар)",
             "Atmosphere (atm)" to "Атмосфера (атм)",
-            "psi" to "psi",
+            "psi" to "psi (psi)",
             // Energy
             "Joule (J)" to "Джоуль (Дж)",
             "Kilojoule (kJ)" to "Килоджоуль (кДж)",

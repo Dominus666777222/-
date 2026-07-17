@@ -175,7 +175,9 @@ fun ConverterScreen(
                                     ),
                                     modifier = Modifier
                                         .weight(1.8f)
+                                        .height(50.dp)
                                         .testTag("converter_source_input"),
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -243,24 +245,31 @@ fun ConverterScreen(
                                     lang = lang
                                 )
 
-                                // Result Text View
-                                Box(
+                                // Target Number Text Field (Editable)
+                                val isTargetHexInput = viewModel.converterCategory == ConverterCategory.NUMBER_SYSTEMS && viewModel.converterTargetUnit == "Hexadecimal"
+                                OutlinedTextField(
+                                    value = viewModel.converterTargetValue,
+                                    onValueChange = { viewModel.onConverterTargetValueChanged(it) },
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = if (isTargetHexInput) KeyboardType.Text else KeyboardType.Number,
+                                        capitalization = KeyboardCapitalization.Characters,
+                                        imeAction = ImeAction.Done
+                                     ),
+                                    keyboardActions = KeyboardActions(
+                                        onDone = { focusManager.clearFocus() }
+                                    ),
                                     modifier = Modifier
                                         .weight(1.8f)
-                                        .height(56.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    Text(
-                                        text = viewModel.converterTargetValue.ifEmpty { "0" },
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 1,
-                                        modifier = Modifier.testTag("converter_target_output")
-                                    )
-                                }
+                                        .height(50.dp)
+                                        .testTag("converter_target_input"),
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
                             }
                         }
                     }
@@ -304,7 +313,7 @@ fun UnitDropdownSelector(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(50.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { expanded = true }
                 .background(MaterialTheme.colorScheme.surfaceVariant)
