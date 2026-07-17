@@ -163,12 +163,27 @@ fun ToolsHubScreen(
                         }
                     }
 
-                    // Visible Grid (implemented using standard Column of Rows for perfect scrolling)
+                    // Visible Grid (implemented using standard Column of Rows with smooth spring reordering animations)
                     val visibleRows = visibleItems.chunked(3)
                     val density = LocalDensity.current
+
+                    // Compute the projected layout of items dynamically as we drag
+                    val projectedList = remember(visibleItems, draggedIndex, hoveredIndex) {
+                        val items = visibleItems.toMutableList()
+                        val dragIdx = draggedIndex
+                        val hoverIdx = hoveredIndex
+                        if (dragIdx != null && hoverIdx != null && dragIdx in items.indices && hoverIdx in items.indices) {
+                            val draggedItem = items.removeAt(dragIdx)
+                            items.add(hoverIdx, draggedItem)
+                        }
+                        items
+                    }
+
                     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                         val containerWidthPx = constraints.maxWidth.toFloat()
-                        val cellWidthPx = containerWidthPx / 3f
+                        val spacingX = with(density) { 12.dp.toPx() }
+                        val spacingY = with(density) { 16.dp.toPx() }
+                        val cellWidthPx = (containerWidthPx - 2 * spacingX) / 3f
                         val cellHeightPx = with(density) { 110.dp.toPx() }
                         val shadowElevationPx = with(density) { 12.dp.toPx() }
 
@@ -182,164 +197,195 @@ fun ToolsHubScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     rowItems.forEachIndexed { colIndex, item ->
-                                        val idx = rowIndex * 3 + colIndex
-                                        val isDraggingThis = draggedIndex == idx
-                                        val isHoverTarget = hoveredIndex == idx && hoveredIndex != draggedIndex
+                                        key(item.id) {
+                                            val idx = rowIndex * 3 + colIndex
+                                            val isDraggingThis = draggedIndex == idx
+                                            val isHoverTarget = hoveredIndex == idx && hoveredIndex != draggedIndex
 
-                                        // Wave scale pulsation calculation
-                                        val itemScale = if (viewModel.isEditMode && draggedIndex != idx) {
-                                            val itemOffset = idx * 150
-                                            val progress = ((timeMillis + itemOffset) % 2000) / 2000f
-                                            1f + 0.03f * kotlin.math.sin(progress * 2 * kotlin.math.PI).toFloat()
-                                        } else 1f
+                                            // Determine where this item should slide to
+                                            val projectedIdx = projectedList.indexOfFirst { it.id == item.id }
+                                            val colDiff = if (projectedIdx != -1) (projectedIdx % 3) - colIndex else 0
+                                            val rowDiff = if (projectedIdx != -1) (projectedIdx / 3) - rowIndex else 0
 
-                                        // Item gesture and translation modifier
-                                        val itemModifier = if (viewModel.isEditMode) {
-                                            Modifier
-                                                .graphicsLayer {
-                                                    if (isDraggingThis) {
-                                                        translationX = dragOffsetX
-                                                        translationY = dragOffsetY
-                                                        scaleX = 1.15f
-                                                        scaleY = 1.15f
-                                                        shadowElevation = shadowElevationPx
-                                                    } else {
-                                                        scaleX = itemScale
-                                                        scaleY = itemScale
+                                            val targetOffsetX = colDiff * (cellWidthPx + spacingX)
+                                            val targetOffsetY = rowDiff * (cellHeightPx + spacingY)
+
+                                            // Smooth spring animation for sliding items out of the way
+                                            val animOffsetX by animateFloatAsState(
+                                                targetValue = if (isDraggingThis) 0f else targetOffsetX,
+                                                animationSpec = spring(
+                                                    dampingRatio = Spring.DampingRatioLowBouncy,
+                                                    stiffness = Spring.StiffnessMediumLow
+                                                ),
+                                                label = "animOffsetX_${item.id}"
+                                            )
+
+                                            val animOffsetY by animateFloatAsState(
+                                                targetValue = if (isDraggingThis) 0f else targetOffsetY,
+                                                animationSpec = spring(
+                                                    dampingRatio = Spring.DampingRatioLowBouncy,
+                                                    stiffness = Spring.StiffnessMediumLow
+                                                ),
+                                                label = "animOffsetY_${item.id}"
+                                            )
+
+                                            // Wave scale pulsation calculation
+                                            val itemScale = if (viewModel.isEditMode && draggedIndex != idx) {
+                                                val itemOffset = idx * 150
+                                                val progress = ((timeMillis + itemOffset) % 2000) / 2000f
+                                                1f + 0.03f * kotlin.math.sin(progress * 2 * kotlin.math.PI).toFloat()
+                                            } else 1f
+
+                                            // Item gesture and translation modifier
+                                            val itemModifier = if (viewModel.isEditMode) {
+                                                Modifier
+                                                    .graphicsLayer {
+                                                        if (isDraggingThis) {
+                                                            translationX = dragOffsetX
+                                                            translationY = dragOffsetY
+                                                            scaleX = 1.15f
+                                                            scaleY = 1.15f
+                                                            shadowElevation = shadowElevationPx
+                                                        } else {
+                                                            translationX = animOffsetX
+                                                            translationY = animOffsetY
+                                                            scaleX = itemScale
+                                                            scaleY = itemScale
+                                                        }
                                                     }
-                                                }
-                                                .zIndex(if (isDraggingThis) 10f else 1f)
-                                                .pointerInput(item.id) { // Keyed on item.id so it remains stable!
-                                                    detectDragGesturesAfterLongPress(
-                                                        onDragStart = {
-                                                            draggedIndex = idx
-                                                            hoveredIndex = idx
-                                                            dragOffsetX = 0f
-                                                            dragOffsetY = 0f
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                        },
-                                                        onDrag = { change, dragAmount ->
-                                                            change.consume()
-                                                            dragOffsetX += dragAmount.x
-                                                            dragOffsetY += dragAmount.y
-
-                                                            val startCol = idx % 3
-                                                            val startRow = idx / 3
-
-                                                            val currentCenterX = (startCol + 0.5f) * cellWidthPx + dragOffsetX
-                                                            val currentCenterY = (startRow + 0.5f) * cellHeightPx + dragOffsetY
-
-                                                            val targetCol = (currentCenterX / cellWidthPx).toInt().coerceIn(0, 2)
-                                                            val targetRow = (currentCenterY / cellHeightPx).toInt().coerceIn(0, (visibleItems.size - 1) / 3)
-
-                                                            val targetIdx = (targetRow * 3 + targetCol).coerceIn(0, visibleItems.size - 1)
-                                                            if (targetIdx != hoveredIndex) {
-                                                                hoveredIndex = targetIdx
+                                                    .zIndex(if (isDraggingThis) 10f else 1f)
+                                                    .pointerInput(item.id) { // Keyed on item.id so it remains stable!
+                                                        detectDragGesturesAfterLongPress(
+                                                            onDragStart = {
+                                                                draggedIndex = idx
+                                                                hoveredIndex = idx
+                                                                dragOffsetX = 0f
+                                                                dragOffsetY = 0f
                                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                            }
-                                                        },
-                                                        onDragEnd = {
-                                                            hoveredIndex?.let { hIdx ->
-                                                                if (hIdx != idx && hIdx in visibleItems.indices) {
-                                                                    viewModel.moveTool(item.id, hIdx)
+                                                            },
+                                                            onDrag = { change, dragAmount ->
+                                                                change.consume()
+                                                                dragOffsetX += dragAmount.x
+                                                                dragOffsetY += dragAmount.y
+
+                                                                val startCol = idx % 3
+                                                                val startRow = idx / 3
+
+                                                                val currentCenterX = startCol * (cellWidthPx + spacingX) + cellWidthPx / 2f + dragOffsetX
+                                                                val currentCenterY = startRow * (cellHeightPx + spacingY) + cellHeightPx / 2f + dragOffsetY
+
+                                                                val targetCol = (currentCenterX / (cellWidthPx + spacingX)).toInt().coerceIn(0, 2)
+                                                                val targetRow = (currentCenterY / (cellHeightPx + spacingY)).toInt().coerceIn(0, (visibleItems.size - 1) / 3)
+
+                                                                val targetIdx = (targetRow * 3 + targetCol).coerceIn(0, visibleItems.size - 1)
+                                                                if (targetIdx != hoveredIndex) {
+                                                                    hoveredIndex = targetIdx
+                                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                                 }
+                                                            },
+                                                            onDragEnd = {
+                                                                hoveredIndex?.let { hIdx ->
+                                                                    if (hIdx != idx && hIdx in visibleItems.indices) {
+                                                                        viewModel.moveTool(item.id, hIdx)
+                                                                    }
+                                                                }
+                                                                draggedIndex = null
+                                                                hoveredIndex = null
+                                                                dragOffsetX = 0f
+                                                                dragOffsetY = 0f
+                                                            },
+                                                            onDragCancel = {
+                                                                draggedIndex = null
+                                                                hoveredIndex = null
+                                                                dragOffsetX = 0f
+                                                                dragOffsetY = 0f
                                                             }
-                                                            draggedIndex = null
-                                                            hoveredIndex = null
-                                                            dragOffsetX = 0f
-                                                            dragOffsetY = 0f
-                                                        },
-                                                        onDragCancel = {
-                                                            draggedIndex = null
-                                                            hoveredIndex = null
-                                                            dragOffsetX = 0f
-                                                            dragOffsetY = 0f
+                                                        )
+                                                    }
+                                            } else {
+                                                Modifier.clickable {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    if (item.activeTool is ActiveTool.Converter) {
+                                                        viewModel.onConverterCategoryChanged(item.activeTool.category)
+                                                    }
+                                                    viewModel.activeTool = item.activeTool
+                                                }
+                                            }
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .then(itemModifier)
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .then(
+                                                        if (isHoverTarget) {
+                                                            Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                                                        } else Modifier
+                                                    )
+                                                    .background(
+                                                        when {
+                                                            isDraggingThis -> MaterialTheme.colorScheme.surfaceVariant
+                                                            isHoverTarget -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                                                            else -> MaterialTheme.colorScheme.surface
                                                         }
                                                     )
-                                                }
-                                        } else {
-                                            Modifier.clickable {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                if (item.activeTool is ActiveTool.Converter) {
-                                                    viewModel.onConverterCategoryChanged(item.activeTool.category)
-                                                }
-                                                viewModel.activeTool = item.activeTool
-                                            }
-                                        }
-
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .then(itemModifier)
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .then(
-                                                    if (isHoverTarget) {
-                                                        Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
-                                                    } else Modifier
-                                                )
-                                                .background(
-                                                    when {
-                                                        isDraggingThis -> MaterialTheme.colorScheme.surfaceVariant
-                                                        isHoverTarget -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                                                        else -> MaterialTheme.colorScheme.surface
-                                                    }
-                                                )
-                                                .padding(vertical = 5.dp, horizontal = 4.dp)
-                                                .testTag("hub_item_${item.id}")
-                                        ) {
-                                            Column(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                                    .padding(vertical = 5.dp, horizontal = 4.dp)
+                                                    .testTag("hub_item_${item.id}")
                                             ) {
-                                                Box(
-                                                    contentAlignment = Alignment.Center,
-                                                    modifier = Modifier
-                                                        .size(64.dp)
-                                                        .clip(CircleShape)
-                                                        .background(
-                                                            if (item.id == "ai") MaterialTheme.colorScheme.tertiaryContainer
-                                                            else MaterialTheme.colorScheme.secondaryContainer
-                                                        )
+                                                Column(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                                 ) {
-                                                    Icon(
-                                                        imageVector = item.icon,
-                                                        contentDescription = Translator.translate(item.labelKey, lang),
-                                                        tint = if (item.id == "ai") MaterialTheme.colorScheme.tertiary
-                                                               else MaterialTheme.colorScheme.onSecondaryContainer,
-                                                        modifier = Modifier.size(28.dp)
+                                                    Box(
+                                                        contentAlignment = Alignment.Center,
+                                                        modifier = Modifier
+                                                            .size(64.dp)
+                                                            .clip(CircleShape)
+                                                            .background(
+                                                                if (item.id == "ai") MaterialTheme.colorScheme.tertiaryContainer
+                                                                else MaterialTheme.colorScheme.secondaryContainer
+                                                            )
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = item.icon,
+                                                            contentDescription = Translator.translate(item.labelKey, lang),
+                                                            tint = if (item.id == "ai") MaterialTheme.colorScheme.tertiary
+                                                                   else MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            modifier = Modifier.size(28.dp)
+                                                        )
+                                                    }
+                                                    Text(
+                                                        text = Translator.translate(item.labelKey, lang),
+                                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                                        textAlign = TextAlign.Center,
+                                                        maxLines = 2,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                        modifier = Modifier.fillMaxWidth()
                                                     )
                                                 }
-                                                Text(
-                                                    text = Translator.translate(item.labelKey, lang),
-                                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                                                    textAlign = TextAlign.Center,
-                                                    maxLines = 2,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.fillMaxWidth()
-                                                )
-                                            }
 
-                                            // Delete cross in top-right corner when editing (smaller circular badge)
-                                            if (viewModel.isEditMode) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .align(Alignment.TopEnd)
-                                                        .offset(x = 2.dp, y = (-2).dp)
-                                                        .size(18.dp)
-                                                        .background(MaterialTheme.colorScheme.error, CircleShape)
-                                                        .clickable {
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                            viewModel.toggleToolVisibility(item.id)
-                                                        },
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Close,
-                                                        contentDescription = "Hide tool",
-                                                        tint = MaterialTheme.colorScheme.onError,
-                                                        modifier = Modifier.size(10.dp)
-                                                    )
+                                                // Delete cross in top-right corner when editing (smaller circular badge)
+                                                if (viewModel.isEditMode) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .align(Alignment.TopEnd)
+                                                            .offset(x = 2.dp, y = (-2).dp)
+                                                            .size(18.dp)
+                                                            .background(MaterialTheme.colorScheme.error, CircleShape)
+                                                            .clickable {
+                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                viewModel.toggleToolVisibility(item.id)
+                                                            },
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Close,
+                                                            contentDescription = "Hide tool",
+                                                            tint = MaterialTheme.colorScheme.onError,
+                                                            modifier = Modifier.size(10.dp)
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
