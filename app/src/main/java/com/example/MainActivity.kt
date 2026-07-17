@@ -50,6 +50,14 @@ import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.CalculatorViewModel
 import com.example.ui.viewmodel.CalculatorViewModelFactory
 import com.example.util.Translator
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,11 +110,48 @@ class MainActivity : ComponentActivity() {
                             }
 
                             Box(modifier = Modifier.weight(1f)) {
-                                when (currentScreen) {
-                                    AppScreen.Calculator -> CalculatorScreen(viewModel = viewModel)
-                                    AppScreen.Tools -> ToolsHubScreen(viewModel = viewModel)
-                                    AppScreen.Settings -> SettingsScreen(viewModel = viewModel)
-                                    AppScreen.History -> HistoryScreen(viewModel = viewModel)
+                                val screenOrder = listOf(
+                                    AppScreen.Calculator,
+                                    AppScreen.Tools,
+                                    AppScreen.Settings,
+                                    AppScreen.History
+                                )
+                                AnimatedContent(
+                                    targetState = currentScreen,
+                                    transitionSpec = {
+                                        val initialIdx = screenOrder.indexOf(initialState).coerceAtLeast(0)
+                                        val targetIdx = screenOrder.indexOf(targetState).coerceAtLeast(0)
+                                        if (targetIdx > initialIdx) {
+                                            (slideInHorizontally(
+                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                            ) { width -> (width * 0.12f).toInt() } + fadeIn(
+                                                animationSpec = tween(durationMillis = 280)
+                                            )) togetherWith (slideOutHorizontally(
+                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                            ) { width -> (-width * 0.12f).toInt() } + fadeOut(
+                                                animationSpec = tween(durationMillis = 140)
+                                            ))
+                                        } else {
+                                            (slideInHorizontally(
+                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                            ) { width -> (-width * 0.12f).toInt() } + fadeIn(
+                                                animationSpec = tween(durationMillis = 280)
+                                            )) togetherWith (slideOutHorizontally(
+                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                            ) { width -> (width * 0.12f).toInt() } + fadeOut(
+                                                animationSpec = tween(durationMillis = 140)
+                                            ))
+                                        }
+                                    },
+                                    label = "screen_transition",
+                                    modifier = Modifier.fillMaxSize()
+                                ) { screen ->
+                                    when (screen) {
+                                        AppScreen.Calculator -> CalculatorScreen(viewModel = viewModel)
+                                        AppScreen.Tools -> ToolsHubScreen(viewModel = viewModel)
+                                        AppScreen.Settings -> SettingsScreen(viewModel = viewModel)
+                                        AppScreen.History -> HistoryScreen(viewModel = viewModel)
+                                    }
                                 }
                             }
                         }

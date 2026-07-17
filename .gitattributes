@@ -1,0 +1,4 @@
+# Ensure Gradle Wrapper jar and keystores are treated as binary files
+*.jar binary
+*.jks binary
+*.png binary

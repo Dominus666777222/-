@@ -22,6 +22,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import com.example.ui.viewmodel.CalculatorViewModel
 import com.example.util.Translator
 
@@ -33,6 +36,26 @@ fun SettingsScreen(
 ) {
     val haptic = LocalHapticFeedback.current
     val lang = viewModel.appLanguage
+
+    val creditsPhrases = remember {
+        listOf(
+            "Сделано Nondiat x Luty vibecode",
+            "Made by Nondiat x Luty vibecode",
+            "Hecho por Nondiat x Luty vibecode",
+            "Erstellt von Nondiat x Luty vibecode",
+            "Wykonane przez Nondiat x Luty vibecode",
+            "Зроблено Nondiat x Luty vibecode",
+            "Зроблена Nondiat x Luty vibecode",
+            "Жасалған Nondiat x Luty vibecode"
+        )
+    }
+    var phraseIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(2500)
+            phraseIndex = (phraseIndex + 1) % creditsPhrases.size
+        }
+    }
 
     Column(
         modifier = modifier
@@ -244,7 +267,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Info Card with Version 1.2
+            // Info Card with Version 1.5
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Card(
@@ -267,11 +290,26 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${if (lang == "ru") "Версия" else "Version"} 1.2",
+                            text = "${if (lang == "ru") "Версия" else "Version"} 1.5",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
+                        AnimatedContent(
+                            targetState = creditsPhrases[phraseIndex],
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                            },
+                            label = "credits_fade"
+                        ) { text ->
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "© 2026 AI Studio",
                             style = MaterialTheme.typography.labelSmall,

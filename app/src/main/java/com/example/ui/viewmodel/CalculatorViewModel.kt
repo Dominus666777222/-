@@ -107,6 +107,19 @@ class CalculatorViewModel(
         sharedPrefs.edit().putString("tools_order", toolsOrder.joinToString(",")).apply()
     }
 
+    fun moveTool(toolId: String, targetIdx: Int) {
+        val currentVisible = toolsOrder.filter { !hiddenTools.contains(it) }
+        val currentHidden = toolsOrder.filter { hiddenTools.contains(it) }
+        
+        val mutableVisible = currentVisible.toMutableList()
+        val idx = mutableVisible.indexOf(toolId)
+        if (idx != -1 && targetIdx in mutableVisible.indices) {
+            val item = mutableVisible.removeAt(idx)
+            mutableVisible.add(targetIdx, item)
+            updateToolsOrder(mutableVisible + currentHidden)
+        }
+    }
+
     // --- Global Navigation State ---
     var currentScreen by mutableStateOf<AppScreen>(AppScreen.Calculator)
     var activeTool by mutableStateOf<ActiveTool>(ActiveTool.Menu)
