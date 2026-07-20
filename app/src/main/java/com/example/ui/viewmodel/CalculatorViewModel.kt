@@ -55,6 +55,7 @@ sealed interface ActiveTool {
 
 sealed interface AppScreen {
     object Calculator : AppScreen
+    object Graphing : AppScreen
     object Tools : AppScreen
     object Settings : AppScreen
     object History : AppScreen
@@ -72,6 +73,17 @@ class CalculatorViewModel(
         private set
     var appLanguage by mutableStateOf("en") // "en", "ru", "uk", "be", "kk", "es", "pl", "de"
         private set
+
+    // --- Large Number Formatting & Postfix calculations state ---
+    var largeNumberFormat by mutableStateOf("scientific") // "none", "scientific", "words"
+        private set
+    var isCalculated by mutableStateOf(false)
+
+    // --- Column Division State ---
+    var isColumnDivisionActive by mutableStateOf(false)
+    var colDivisionDividend by mutableStateOf("125")
+    var colDivisionDivisor by mutableStateOf("5")
+    var activeColDivisionField by mutableStateOf(0) // 0 for dividend, 1 for divisor
 
     // --- Tools Editing State ---
     var isEditMode by mutableStateOf(false)
@@ -205,6 +217,7 @@ class CalculatorViewModel(
         // Load settings from SharedPreferences
         appTheme = sharedPrefs.getString("theme_mode", "system") ?: "system"
         isScientificMode = sharedPrefs.getBoolean("scientific_mode", false)
+        largeNumberFormat = sharedPrefs.getString("large_number_format", "scientific") ?: "scientific"
 
         val systemLanguage = Locale.getDefault().language
         val defaultLang = when (systemLanguage) {
@@ -230,6 +243,11 @@ class CalculatorViewModel(
     // Settings Actions
     // ==========================================
 
+    fun onLargeNumberFormatChanged(newFormat: String) {
+        largeNumberFormat = newFormat
+        sharedPrefs.edit().putString("large_number_format", newFormat).apply()
+    }
+
     fun onThemeChanged(newTheme: String) {
         appTheme = newTheme
         sharedPrefs.edit().putString("theme_mode", newTheme).apply()
@@ -250,7 +268,56 @@ class CalculatorViewModel(
     // ==========================================
 
     fun onCalculatorKeyPress(key: String) {
+        if (isColumnDivisionActive) {
+            when (key) {
+                "C" -> {
+                    if (activeColDivisionField == 0) colDivisionDividend = "" else colDivisionDivisor = ""
+                }
+                "⌫" -> {
+                    if (activeColDivisionField == 0) {
+                        if (colDivisionDividend.isNotEmpty()) colDivisionDividend = colDivisionDividend.dropLast(1)
+                    } else {
+                        if (colDivisionDivisor.isNotEmpty()) colDivisionDivisor = colDivisionDivisor.dropLast(1)
+                    }
+                }
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" -> {
+                    if (activeColDivisionField == 0) {
+                        if (colDivisionDividend == "0") colDivisionDividend = key else colDivisionDividend += key
+                    } else {
+                        if (colDivisionDivisor == "0") colDivisionDivisor = key else colDivisionDivisor += key
+                    }
+                }
+                "±" -> {
+                    if (activeColDivisionField == 0) {
+                        if (colDivisionDividend.startsWith("-")) {
+                            colDivisionDividend = colDivisionDividend.substring(1)
+                        } else if (colDivisionDividend.isNotEmpty()) {
+                            colDivisionDividend = "-$colDivisionDividend"
+                        }
+                    } else {
+                        if (colDivisionDivisor.startsWith("-")) {
+                            colDivisionDivisor = colDivisionDivisor.substring(1)
+                        } else if (colDivisionDivisor.isNotEmpty()) {
+                            colDivisionDivisor = "-$colDivisionDivisor"
+                        }
+                    }
+                }
+                "÷R" -> {
+                    isColumnDivisionActive = false
+                }
+                else -> {
+                    if (key == "=" || key == "🔬" || key == "🧮") {
+                        isColumnDivisionActive = false
+                    }
+                }
+            }
+            return
+        }
+
         isCalculatorError = false
+        if (key != "=") {
+            isCalculated = false
+        }
         when (key) {
             "C" -> {
                 calculatorInput = ""
@@ -275,6 +342,7 @@ class CalculatorViewModel(
                         saveHistoryItem(HistoryItem(type = "MATH", description = calculatorInput, result = finalResult))
                         calculatorInput = finalResult
                         calculatorPreviewResult = ""
+                        isCalculated = true
                     }
                 }
             }
@@ -286,12 +354,19 @@ class CalculatorViewModel(
                 val appendKey = when (key) {
                     "sin", "cos", "tan", "ln", "log" -> "$key("
                     "√" -> "√("
+                    "mod" -> "%"
+                    "x²" -> "^2"
                     else -> key
                 }
                 calculatorInput += appendKey
                 updatePreviewResult()
             }
         }
+    }
+
+    fun appendToInput(text: String) {
+        calculatorInput += text
+        updatePreviewResult()
     }
 
     private fun isOperatorChar(str: String): Boolean {
@@ -1026,6 +1101,120 @@ class CalculatorViewModel(
     // ==========================================
     // History Actions
     // ==========================================
+
+    // --- Large Number and Long Division Math Helpers ---
+    data class LongDivisionStep(
+        val currentDividend: String,
+        val subtractValue: String,
+        val remainder: String,
+        val stepQuotient: Int,
+        val padding: Int
+    )
+
+    fun solveLongDivision(dividendStr: String, divisorStr: String): List<LongDivisionStep> {
+        val dividendLong = dividendStr.toLongOrNull() ?: return emptyList()
+        val divisorLong = divisorStr.toLongOrNull() ?: return emptyList()
+        if (divisorLong == 0L) return emptyList()
+        
+        val steps = mutableListOf<LongDivisionStep>()
+        val dividend = kotlin.math.abs(dividendLong).toString()
+        val divisor = kotlin.math.abs(divisorLong)
+        
+        var currentPart = ""
+        var remainder = 0L
+        
+        for (i in dividend.indices) {
+            currentPart += dividend[i]
+            val currentVal = currentPart.toLong()
+            if (currentVal >= divisor || (i == dividend.length - 1 && steps.isEmpty())) {
+                val quotientDigit = currentVal / divisor
+                val subtractVal = quotientDigit * divisor
+                remainder = currentVal - subtractVal
+                
+                steps.add(
+                    LongDivisionStep(
+                        currentDividend = currentVal.toString(),
+                        subtractValue = subtractVal.toString(),
+                        remainder = remainder.toString(),
+                        stepQuotient = quotientDigit.toInt(),
+                        padding = i - currentVal.toString().length + 1
+                    )
+                )
+                currentPart = remainder.toString()
+                if (currentPart == "0") {
+                    currentPart = ""
+                }
+            }
+        }
+        return steps
+    }
+
+    fun formatCalculatorResult(resultStr: String): String {
+        if (resultStr.startsWith("Error") || resultStr.isBlank()) return resultStr
+        
+        val doubleVal = resultStr.toDoubleOrNull() ?: return resultStr
+        val absVal = kotlin.math.abs(doubleVal)
+        
+        if (absVal < 1e21) {
+            return resultStr
+        }
+        
+        return when (largeNumberFormat) {
+            "none" -> {
+                try {
+                    BigDecimal(doubleVal.toString()).toPlainString()
+                } catch (e: Exception) {
+                    resultStr
+                }
+            }
+            "scientific" -> {
+                try {
+                    val bd = BigDecimal(doubleVal.toString())
+                    val exponent = bd.precision() - bd.scale() - 1
+                    val mantissa = bd.divide(BigDecimal.TEN.pow(exponent), 3, RoundingMode.HALF_UP).stripTrailingZeros()
+                    "${mantissa.toPlainString()}e$exponent"
+                } catch (e: Exception) {
+                    String.format(Locale.US, "%.3e", doubleVal)
+                }
+            }
+            "words" -> {
+                val exponent = kotlin.math.log10(absVal).toInt()
+                val (baseExponent, suffix) = when {
+                    exponent >= 63 -> Pair(63, "Vig")
+                    exponent >= 60 -> Pair(60, "NoD")
+                    exponent >= 57 -> Pair(57, "OcD")
+                    exponent >= 54 -> Pair(54, "SpD")
+                    exponent >= 51 -> Pair(51, "SxD")
+                    exponent >= 48 -> Pair(48, "QnD")
+                    exponent >= 45 -> Pair(45, "Qat")
+                    exponent >= 42 -> Pair(42, "Tre")
+                    exponent >= 39 -> Pair(39, "Duo")
+                    exponent >= 36 -> Pair(36, "Und")
+                    exponent >= 33 -> Pair(33, "Dec")
+                    exponent >= 30 -> Pair(30, "Non")
+                    exponent >= 27 -> Pair(27, "Oct")
+                    exponent >= 24 -> Pair(24, "Spt")
+                    exponent >= 21 -> Pair(21, "Sxt")
+                    exponent >= 18 -> Pair(18, "Qnt")
+                    exponent >= 15 -> Pair(15, "Qad")
+                    exponent >= 12 -> Pair(12, "Trl")
+                    exponent >= 9 -> Pair(9, "Bln")
+                    exponent >= 6 -> Pair(6, "Mln")
+                    else -> Pair(0, "")
+                }
+                
+                if (baseExponent > 0) {
+                    val divisor = BigDecimal.TEN.pow(baseExponent)
+                    val bd = BigDecimal(doubleVal.toString())
+                    val valueInSuffix = bd.divide(divisor, 3, RoundingMode.HALF_UP).stripTrailingZeros()
+                    "${valueInSuffix.toPlainString()} $suffix"
+                } else {
+                    resultStr
+                }
+            }
+            else -> resultStr
+        }
+    }
 
     private fun saveHistoryItem(item: HistoryItem) {
         viewModelScope.launch {

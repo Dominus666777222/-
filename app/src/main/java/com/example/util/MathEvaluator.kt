@@ -41,7 +41,7 @@ object MathEvaluator {
             result.append(curr)
             if (i < s.length - 1) {
                 val next = s[i + 1]
-                val isCurrDigitOrRightBracketOrConst = curr.isDigit() || curr == ')' || curr == 'π' || curr == 'e'
+                val isCurrDigitOrRightBracketOrConst = curr.isDigit() || curr == ')' || curr == 'π' || curr == 'e' || curr == '!'
                 val isNextLeftBracketOrConstOrFunc = next == '(' || next == 'π' || next == 'e' || next == '√' || 
                         (next in 'a'..'z')
                 
@@ -119,6 +119,18 @@ object MathEvaluator {
             return x
         }
 
+        private fun factorial(n: Double): Double {
+            if (n < 0.0) throw ArithmeticException("Factorial of negative number")
+            val count = n.roundToInt()
+            if (count < 0) throw ArithmeticException("Factorial of negative number")
+            if (count > 100) return Double.POSITIVE_INFINITY // Prevent overflow/slowdowns
+            var res = 1.0
+            for (i in 1..count) {
+                res *= i
+            }
+            return res
+        }
+
         fun parseFactor(): Double {
             if (eat('+'.code)) return parseFactor() // unary plus
             if (eat('-'.code)) return -parseFactor() // unary minus
@@ -152,6 +164,11 @@ object MathEvaluator {
                 }
             } else {
                 throw RuntimeException("Unexpected token: " + ch.toChar())
+            }
+
+            // Postfix factorial support
+            while (eat('!'.code)) {
+                x = factorial(x)
             }
 
             if (eat('^'.code)) x = x.pow(parseFactor()) // exponentiation

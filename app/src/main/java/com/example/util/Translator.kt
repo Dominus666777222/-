@@ -6,6 +6,7 @@ object Translator {
         "en" to mapOf(
             "app_name" to "MD3 calc",
             "calculator" to "Calculator",
+            "graphing" to "Graphing",
             "converter" to "Converter",
             "bmi" to "BMI",
             "date_calc" to "Date Calc",
@@ -84,11 +85,16 @@ object Translator {
             "angle" to "Angle",
             "hidden" to "Hidden Tools",
             "edit_mode" to "Edit Mode",
-            "hidden_desc" to "Tap plus (+) to restore a tool."
+            "hidden_desc" to "Tap plus (+) to restore a tool.",
+            "large_num_format" to "Large Number Format (>21 zeros)",
+            "large_num_none" to "Raw / Plain",
+            "large_num_scientific" to "Scientific (eXX)",
+            "large_num_words" to "Words (Sxt, Spt...)"
         ),
         "ru" to mapOf(
             "app_name" to "MD3 калькулятор",
             "calculator" to "Калькулятор",
+            "graphing" to "Графики",
             "converter" to "Конвертер",
             "bmi" to "ИМТ",
             "date_calc" to "Счётчик дат",
@@ -167,7 +173,11 @@ object Translator {
             "angle" to "Угол",
             "hidden" to "Скрытые инструменты",
             "edit_mode" to "Режим редактирования",
-            "hidden_desc" to "Нажмите плюс (+), чтобы восстановить инструмент."
+            "hidden_desc" to "Нажмите плюс (+), чтобы восстановить инструмент.",
+            "large_num_format" to "Формат больших чисел (>21 нулей)",
+            "large_num_none" to "Без форматирования",
+            "large_num_scientific" to "С припиской eXX",
+            "large_num_words" to "Буквенный (Sxt, Spt...)"
         ),
         "uk" to mapOf(
             "app_name" to "MD3 Калькулятор",

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,6 +42,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.data.database.CalculatorDatabase
 import com.example.data.repository.HistoryRepository
 import com.example.ui.screens.CalculatorScreen
+import com.example.ui.screens.GraphingScreen
 import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.ToolsHubScreen
@@ -101,8 +103,9 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            // Render top tabs only if we are on the main tabs: Calculator or Tools selection
+                            // Render top tabs only if we are on the main tabs: Calculator, Graphing, or Tools selection
                             val showTopTabs = currentScreen == AppScreen.Calculator || 
+                                              currentScreen == AppScreen.Graphing ||
                                               (currentScreen == AppScreen.Tools && viewModel.activeTool == ActiveTool.Menu)
                             
                             if (showTopTabs) {
@@ -112,6 +115,7 @@ class MainActivity : ComponentActivity() {
                             Box(modifier = Modifier.weight(1f)) {
                                 val screenOrder = listOf(
                                     AppScreen.Calculator,
+                                    AppScreen.Graphing,
                                     AppScreen.Tools,
                                     AppScreen.Settings,
                                     AppScreen.History
@@ -148,6 +152,7 @@ class MainActivity : ComponentActivity() {
                                 ) { screen ->
                                     when (screen) {
                                         AppScreen.Calculator -> CalculatorScreen(viewModel = viewModel)
+                                        AppScreen.Graphing -> GraphingScreen(viewModel = viewModel)
                                         AppScreen.Tools -> ToolsHubScreen(viewModel = viewModel)
                                         AppScreen.Settings -> SettingsScreen(viewModel = viewModel)
                                         AppScreen.History -> HistoryScreen(viewModel = viewModel)
@@ -230,6 +235,17 @@ fun MainTopTabBar(
                 label = Translator.translate("calculator", lang),
                 icon = Icons.Default.Calculate,
                 testTag = "tab_calculator"
+            )
+
+            TabPill(
+                selected = viewModel.currentScreen == AppScreen.Graphing,
+                onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.currentScreen = AppScreen.Graphing 
+                },
+                label = Translator.translate("graphing", lang),
+                icon = Icons.Default.ShowChart,
+                testTag = "tab_graphing"
             )
             
             TabPill(

@@ -13,6 +13,10 @@ android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
+  base {
+    archivesName.set("GoydaCalc_1_5")
+  }
+
   defaultConfig {
     applicationId = "com.goyda.calculator"
     minSdk = 24
@@ -60,6 +64,10 @@ android {
       }
     }
     debug {
+      isMinifyEnabled = true
+      isCrunchPngs = true
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      
       val customDebugKeystore = file("${rootDir}/debug.keystore")
       if (customDebugKeystore.exists()) {
         signingConfig = signingConfigs.getByName("debugConfig")
@@ -68,6 +76,7 @@ android {
       }
     }
   }
+
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
@@ -153,3 +162,4 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+

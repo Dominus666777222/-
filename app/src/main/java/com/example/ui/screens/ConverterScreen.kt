@@ -58,26 +58,27 @@ fun ConverterScreen(
 
             // --- STANDARD DUAL-INPUT TRANSLATOR LAYOUT ---
             
-            // Currency Live Rate Sync Panel
-            if (viewModel.converterCategory == ConverterCategory.CURRENCY) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+            // Consistent Header Panel (Always visible, prevents layout shifts)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().height(72.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
+                            if (viewModel.converterCategory == ConverterCategory.CURRENCY) {
                                 val translatedStatus = when (viewModel.rateSyncStatus) {
                                     "Fallbacks Active" -> if (lang == "ru") "Резервные курсы активны" else "Fallbacks Active"
                                     "Rates Synced via Gemini" -> if (lang == "ru") "Курсы синхронизированы" else "Rates Synced via Gemini"
@@ -86,18 +87,75 @@ fun ConverterScreen(
                                 }
                                 Text(
                                     text = translatedStatus,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = if (lang == "ru") "Использует Gemini для получения актуальных курсов валют" else "Uses Gemini to retrieve current global rates",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    text = if (lang == "ru") "Курсы обновляются через Gemini" else "Rates updated via Gemini API",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                            } else {
+                                val headerTitle = when (viewModel.converterCategory) {
+                                    ConverterCategory.LENGTH -> if (lang == "ru") "Конвертер длины" else "Length Converter"
+                                    ConverterCategory.TEMPERATURE -> if (lang == "ru") "Температура" else "Temperature"
+                                    ConverterCategory.WEIGHT -> if (lang == "ru") "Вес и масса" else "Weight & Mass"
+                                    ConverterCategory.AREA -> if (lang == "ru") "Площадь" else "Area"
+                                    ConverterCategory.VOLUME -> if (lang == "ru") "Объём" else "Volume"
+                                    ConverterCategory.DATA_STORAGE -> if (lang == "ru") "Типы памяти" else "Data Storage"
+                                    ConverterCategory.NUMBER_SYSTEMS -> if (lang == "ru") "Системы счисления" else "Number Systems"
+                                    ConverterCategory.TIME -> if (lang == "ru") "Время" else "Time"
+                                    ConverterCategory.SPEED -> if (lang == "ru") "Скорость" else "Speed"
+                                    ConverterCategory.PRESSURE -> if (lang == "ru") "Давление" else "Pressure"
+                                    ConverterCategory.ENERGY -> if (lang == "ru") "Энергия" else "Energy"
+                                    ConverterCategory.FORCE -> if (lang == "ru") "Сила" else "Force"
+                                    ConverterCategory.FREQUENCY -> if (lang == "ru") "Частота" else "Frequency"
+                                    ConverterCategory.DENSITY -> if (lang == "ru") "Плотность" else "Density"
+                                    ConverterCategory.ANGLE -> if (lang == "ru") "Угол" else "Angle"
+                                    else -> ""
+                                }
+                                val headerDesc = when (viewModel.converterCategory) {
+                                    ConverterCategory.LENGTH -> if (lang == "ru") "Перевод метрических и имперских единиц" else "Convert metric and imperial units"
+                                    ConverterCategory.TEMPERATURE -> if (lang == "ru") "Перевод градусов Цельсия, Фаренгейта, Кельвина" else "Convert Celsius, Fahrenheit, Kelvin"
+                                    ConverterCategory.WEIGHT -> if (lang == "ru") "Перевод килограммов, граммов, фунтов, унций" else "Convert kg, grams, pounds, ounces"
+                                    ConverterCategory.AREA -> if (lang == "ru") "Метры², гектары, акры, квадратные мили" else "Square meters, hectares, acres"
+                                    ConverterCategory.VOLUME -> if (lang == "ru") "Литры, миллилитры, галлоны, стаканы" else "Liters, milliliters, gallons, cups"
+                                    ConverterCategory.DATA_STORAGE -> if (lang == "ru") "Байты, килобайты, мегабайты, гигабайты" else "Bytes, kilobytes, megabytes, gigabytes"
+                                    ConverterCategory.NUMBER_SYSTEMS -> if (lang == "ru") "Перевод между 2-й, 8-й, 10-й, 16-й системами" else "Convert binary, octal, decimal, hex"
+                                    ConverterCategory.TIME -> if (lang == "ru") "Секунды, минуты, часы, дни, недели, года" else "Seconds, minutes, hours, days, years"
+                                    ConverterCategory.SPEED -> if (lang == "ru") "М/с, км/ч, мили/ч, узлы" else "M/s, km/h, mph, knots"
+                                    ConverterCategory.PRESSURE -> if (lang == "ru") "Паскали, бары, атмосферы, торры" else "Pascals, bars, atmospheres, torr"
+                                    ConverterCategory.ENERGY -> if (lang == "ru") "Джоули, калории, ватт-часы" else "Joules, calories, watt-hours"
+                                    ConverterCategory.FORCE -> if (lang == "ru") "Ньютоны, дины, килограмм-силы" else "Newtons, dynes, kilogram-forces"
+                                    ConverterCategory.FREQUENCY -> if (lang == "ru") "Герцы, килогерцы, мегагерцы, гигагерцы" else "Hertz, kilohertz, megahertz, gigahertz"
+                                    ConverterCategory.DENSITY -> if (lang == "ru") "г/см³, кг/м³, фунты/фут³" else "g/cm³, kg/m³, lb/ft³"
+                                    ConverterCategory.ANGLE -> if (lang == "ru") "Градусы, радианы, градианы" else "Degrees, radians, gradians"
+                                    else -> ""
+                                }
+                                Text(
+                                    text = headerTitle,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = headerDesc,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
                             }
+                        }
 
-                            Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
 
+                        if (viewModel.converterCategory == ConverterCategory.CURRENCY) {
                             Button(
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -119,9 +177,34 @@ fun ConverterScreen(
                                 } else {
                                     Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(Translator.translate("rate_sync", lang), fontSize = 13.sp)
+                                    Text(Translator.translate("rate_sync", lang), fontSize = 12.sp)
                                 }
                             }
+                        } else {
+                            val headerIcon = when (viewModel.converterCategory) {
+                                ConverterCategory.LENGTH -> Icons.Default.Straighten
+                                ConverterCategory.TEMPERATURE -> Icons.Default.DeviceThermostat
+                                ConverterCategory.WEIGHT -> Icons.Default.Scale
+                                ConverterCategory.AREA -> Icons.Default.Layers
+                                ConverterCategory.VOLUME -> Icons.Default.WaterDrop
+                                ConverterCategory.DATA_STORAGE -> Icons.Default.SdCard
+                                ConverterCategory.NUMBER_SYSTEMS -> Icons.Default.Numbers
+                                ConverterCategory.TIME -> Icons.Default.AccessTime
+                                ConverterCategory.SPEED -> Icons.Default.Speed
+                                ConverterCategory.PRESSURE -> Icons.Default.Compress
+                                ConverterCategory.ENERGY -> Icons.Default.Bolt
+                                ConverterCategory.FORCE -> Icons.Default.FitnessCenter
+                                ConverterCategory.FREQUENCY -> Icons.Default.Waves
+                                ConverterCategory.DENSITY -> Icons.Default.Opacity
+                                ConverterCategory.ANGLE -> Icons.Default.Architecture
+                                else -> Icons.Default.Category
+                            }
+                            Icon(
+                                imageVector = headerIcon,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                modifier = Modifier.size(28.dp).padding(end = 4.dp)
+                            )
                         }
                     }
                 }
