@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import com.example.MainTopTabBar
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -119,17 +120,23 @@ fun ToolsHubScreen(
                 (slideInHorizontally { it } + fadeIn()) togetherWith (slideOutHorizontally { -it } + fadeOut())
             }
         },
+        modifier = Modifier.fillMaxSize(),
         label = "active_tool_transition"
     ) { currentTool ->
         when (currentTool) {
             is ActiveTool.Menu -> {
                 Column(
-                    modifier = modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.fillMaxSize()
                 ) {
+                    MainTopTabBar(viewModel = viewModel, lang = lang)
+
+                    Column(
+                        modifier = modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                     // Header Row with title and clean pencil/checkmark edit mode button
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -495,56 +502,64 @@ fun ToolsHubScreen(
                         }
                     }
                 }
+                }
             }
             else -> {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    TopAppBar(
-                        title = {
-                            val titleStr = when (currentTool) {
-                                is ActiveTool.Converter -> Translator.translate(
-                                    when (currentTool.category) {
-                                        ConverterCategory.CURRENCY -> "currency"
-                                        ConverterCategory.LENGTH -> "length"
-                                        ConverterCategory.TEMPERATURE -> "temperature"
-                                        ConverterCategory.WEIGHT -> "weight"
-                                        ConverterCategory.AREA -> "area"
-                                        ConverterCategory.VOLUME -> "volume"
-                                        ConverterCategory.DATA_STORAGE -> "data_storage"
-                                        ConverterCategory.NUMBER_SYSTEMS -> "number_systems"
-                                        ConverterCategory.TIME -> "time"
-                                        ConverterCategory.SPEED -> "speed"
-                                        ConverterCategory.PRESSURE -> "pressure"
-                                        ConverterCategory.ENERGY -> "energy"
-                                        ConverterCategory.FORCE -> "force"
-                                        ConverterCategory.FREQUENCY -> "frequency"
-                                        ConverterCategory.DENSITY -> "density"
-                                        ConverterCategory.ANGLE -> "angle"
-                                    }, lang
-                                )
-                                is ActiveTool.Bmi -> Translator.translate("bmi", lang)
-                                is ActiveTool.DateCalc -> Translator.translate("date_calc", lang)
-                                else -> ""
-                            }
-                            Text(text = titleStr, fontWeight = FontWeight.Bold)
-                        },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    viewModel.activeTool = ActiveTool.Menu
-                                },
-                                modifier = Modifier.testTag("sub_tool_back_btn")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowBack,
-                                    contentDescription = "Back"
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.background
+                    val titleStr = when (currentTool) {
+                        is ActiveTool.Converter -> Translator.translate(
+                            when (currentTool.category) {
+                                ConverterCategory.CURRENCY -> "currency"
+                                ConverterCategory.LENGTH -> "length"
+                                ConverterCategory.TEMPERATURE -> "temperature"
+                                ConverterCategory.WEIGHT -> "weight"
+                                ConverterCategory.AREA -> "area"
+                                ConverterCategory.VOLUME -> "volume"
+                                ConverterCategory.DATA_STORAGE -> "data_storage"
+                                ConverterCategory.NUMBER_SYSTEMS -> "number_systems"
+                                ConverterCategory.TIME -> "time"
+                                ConverterCategory.SPEED -> "speed"
+                                ConverterCategory.PRESSURE -> "pressure"
+                                ConverterCategory.ENERGY -> "energy"
+                                ConverterCategory.FORCE -> "force"
+                                ConverterCategory.FREQUENCY -> "frequency"
+                                ConverterCategory.DENSITY -> "density"
+                                ConverterCategory.ANGLE -> "angle"
+                            }, lang
                         )
-                    )
+                        is ActiveTool.Bmi -> Translator.translate("bmi", lang)
+                        is ActiveTool.DateCalc -> Translator.translate("date_calc", lang)
+                        else -> ""
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.activeTool = ActiveTool.Menu
+                            },
+                            modifier = Modifier.testTag("sub_tool_back_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Text(
+                            text = titleStr,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
 
                     Surface(
                         modifier = Modifier.weight(1f),

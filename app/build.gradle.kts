@@ -13,10 +13,6 @@ android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
-  base {
-    archivesName.set("GoydaCalc_1_5")
-  }
-
   defaultConfig {
     applicationId = "com.goyda.calculator"
     minSdk = 24

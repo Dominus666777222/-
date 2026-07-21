@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import com.example.MainTopTabBar
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -66,12 +67,17 @@ fun GraphingScreen(viewModel: CalculatorViewModel) {
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .testTag("graphing_screen_root"),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
+        MainTopTabBar(viewModel = viewModel, lang = lang)
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp)
+                .testTag("graphing_screen_root"),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
         // --- 1. Graph Display Canvas ---
         Box(
             modifier = Modifier
@@ -440,6 +446,7 @@ fun GraphingScreen(viewModel: CalculatorViewModel) {
             }
         }
     }
+}
 }
 
 // Helper Modifier to clip graphics inside boundaries

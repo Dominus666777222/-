@@ -61,33 +61,35 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .statusBarsPadding()
     ) {
         // Top Toolbar with back action
-        TopAppBar(
-            title = {
-                Text(
-                    text = Translator.translate("settings", lang),
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            navigationIcon = {
-                IconButton(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.currentScreen = com.example.ui.viewmodel.AppScreen.Calculator
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
-                    )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.currentScreen = com.example.ui.viewmodel.AppScreen.Calculator
                 }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Text(
+                text = Translator.translate("settings", lang),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
             )
-        )
+        }
 
         LazyColumn(
             modifier = Modifier
@@ -311,7 +313,14 @@ fun SettingsScreen(
                                 val isSelected = viewModel.largeNumberFormat == mode
                                 val displayName = Translator.translate(titleKey, lang)
 
-                                Box(
+                                val exampleText = when (mode) {
+                                    "none" -> "1000000..."
+                                    "scientific" -> "1.00e21"
+                                    "words" -> "1.00 Qnt"
+                                    else -> ""
+                                }
+
+                                Column(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(16.dp))
@@ -329,7 +338,8 @@ fun SettingsScreen(
                                             shape = RoundedCornerShape(16.dp)
                                         )
                                         .padding(vertical = 12.dp, horizontal = 4.dp),
-                                    contentAlignment = Alignment.Center
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     Text(
                                         text = displayName,
@@ -338,6 +348,15 @@ fun SettingsScreen(
                                             fontSize = 11.sp
                                         ),
                                         color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                    Text(
+                                        text = exampleText,
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Normal
+                                        ),
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                     )
                                 }

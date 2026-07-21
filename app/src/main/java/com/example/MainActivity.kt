@@ -53,6 +53,9 @@ import com.example.ui.viewmodel.CalculatorViewModel
 import com.example.ui.viewmodel.CalculatorViewModelFactory
 import com.example.util.Translator
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.fadeIn
@@ -102,61 +105,50 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            // Render top tabs only if we are on the main tabs: Calculator, Graphing, or Tools selection
-                            val showTopTabs = currentScreen == AppScreen.Calculator || 
-                                              currentScreen == AppScreen.Graphing ||
-                                              (currentScreen == AppScreen.Tools && viewModel.activeTool == ActiveTool.Menu)
-                            
-                            if (showTopTabs) {
-                                MainTopTabBar(viewModel = viewModel, lang = lang)
-                            }
-
-                            Box(modifier = Modifier.weight(1f)) {
-                                val screenOrder = listOf(
-                                    AppScreen.Calculator,
-                                    AppScreen.Graphing,
-                                    AppScreen.Tools,
-                                    AppScreen.Settings,
-                                    AppScreen.History
-                                )
-                                AnimatedContent(
-                                    targetState = currentScreen,
-                                    transitionSpec = {
-                                        val initialIdx = screenOrder.indexOf(initialState).coerceAtLeast(0)
-                                        val targetIdx = screenOrder.indexOf(targetState).coerceAtLeast(0)
-                                        if (targetIdx > initialIdx) {
-                                            (slideInHorizontally(
-                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                            ) { width -> (width * 0.12f).toInt() } + fadeIn(
-                                                animationSpec = tween(durationMillis = 280)
-                                            )) togetherWith (slideOutHorizontally(
-                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                            ) { width -> (-width * 0.12f).toInt() } + fadeOut(
-                                                animationSpec = tween(durationMillis = 140)
-                                            ))
-                                        } else {
-                                            (slideInHorizontally(
-                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                            ) { width -> (-width * 0.12f).toInt() } + fadeIn(
-                                                animationSpec = tween(durationMillis = 280)
-                                            )) togetherWith (slideOutHorizontally(
-                                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                            ) { width -> (width * 0.12f).toInt() } + fadeOut(
-                                                animationSpec = tween(durationMillis = 140)
-                                            ))
-                                        }
-                                    },
-                                    label = "screen_transition",
-                                    modifier = Modifier.fillMaxSize()
-                                ) { screen ->
-                                    when (screen) {
-                                        AppScreen.Calculator -> CalculatorScreen(viewModel = viewModel)
-                                        AppScreen.Graphing -> GraphingScreen(viewModel = viewModel)
-                                        AppScreen.Tools -> ToolsHubScreen(viewModel = viewModel)
-                                        AppScreen.Settings -> SettingsScreen(viewModel = viewModel)
-                                        AppScreen.History -> HistoryScreen(viewModel = viewModel)
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            val screenOrder = listOf(
+                                AppScreen.Calculator,
+                                AppScreen.Tools,
+                                AppScreen.Graphing,
+                                AppScreen.Settings,
+                                AppScreen.History
+                            )
+                            AnimatedContent(
+                                targetState = currentScreen,
+                                transitionSpec = {
+                                    val initialIdx = screenOrder.indexOf(initialState).coerceAtLeast(0)
+                                    val targetIdx = screenOrder.indexOf(targetState).coerceAtLeast(0)
+                                    if (targetIdx > initialIdx) {
+                                        (slideInHorizontally(
+                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                        ) { width -> (width * 0.12f).toInt() } + fadeIn(
+                                            animationSpec = tween(durationMillis = 280)
+                                        )) togetherWith (slideOutHorizontally(
+                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                        ) { width -> (-width * 0.12f).toInt() } + fadeOut(
+                                            animationSpec = tween(durationMillis = 140)
+                                        ))
+                                    } else {
+                                        (slideInHorizontally(
+                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                        ) { width -> (-width * 0.12f).toInt() } + fadeIn(
+                                            animationSpec = tween(durationMillis = 280)
+                                        )) togetherWith (slideOutHorizontally(
+                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                                        ) { width -> (width * 0.12f).toInt() } + fadeOut(
+                                            animationSpec = tween(durationMillis = 140)
+                                        ))
                                     }
+                                },
+                                label = "screen_transition",
+                                modifier = Modifier.fillMaxSize()
+                            ) { screen ->
+                                when (screen) {
+                                    AppScreen.Calculator -> CalculatorScreen(viewModel = viewModel)
+                                    AppScreen.Graphing -> GraphingScreen(viewModel = viewModel)
+                                    AppScreen.Tools -> ToolsHubScreen(viewModel = viewModel)
+                                    AppScreen.Settings -> SettingsScreen(viewModel = viewModel)
+                                    AppScreen.History -> HistoryScreen(viewModel = viewModel)
                                 }
                             }
                         }
@@ -214,6 +206,7 @@ fun MainTopTabBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(56.dp)
             .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -238,17 +231,6 @@ fun MainTopTabBar(
             )
 
             TabPill(
-                selected = viewModel.currentScreen == AppScreen.Graphing,
-                onClick = { 
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    viewModel.currentScreen = AppScreen.Graphing 
-                },
-                label = Translator.translate("graphing", lang),
-                icon = Icons.Default.ShowChart,
-                testTag = "tab_graphing"
-            )
-            
-            TabPill(
                 selected = viewModel.currentScreen == AppScreen.Tools,
                 onClick = { 
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -257,6 +239,17 @@ fun MainTopTabBar(
                 label = Translator.translate("tools", lang),
                 icon = Icons.Default.GridView,
                 testTag = "tab_tools"
+            )
+
+            TabPill(
+                selected = viewModel.currentScreen == AppScreen.Graphing,
+                onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.currentScreen = AppScreen.Graphing 
+                },
+                label = Translator.translate("graphing", lang),
+                icon = Icons.Default.ShowChart,
+                testTag = "tab_graphing"
             )
         }
 

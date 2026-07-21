@@ -86,10 +86,10 @@ object Translator {
             "hidden" to "Hidden Tools",
             "edit_mode" to "Edit Mode",
             "hidden_desc" to "Tap plus (+) to restore a tool.",
-            "large_num_format" to "Large Number Format (>21 zeros)",
-            "large_num_none" to "Raw / Plain",
-            "large_num_scientific" to "Scientific (eXX)",
-            "large_num_words" to "Words (Sxt, Spt...)"
+            "large_num_format" to "Large Number Format",
+            "large_num_none" to "Plain",
+            "large_num_scientific" to "Scientific",
+            "large_num_words" to "Words"
         ),
         "ru" to mapOf(
             "app_name" to "MD3 калькулятор",
@@ -174,10 +174,10 @@ object Translator {
             "hidden" to "Скрытые инструменты",
             "edit_mode" to "Режим редактирования",
             "hidden_desc" to "Нажмите плюс (+), чтобы восстановить инструмент.",
-            "large_num_format" to "Формат больших чисел (>21 нулей)",
-            "large_num_none" to "Без форматирования",
-            "large_num_scientific" to "С припиской eXX",
-            "large_num_words" to "Буквенный (Sxt, Spt...)"
+            "large_num_format" to "Формат больших чисел",
+            "large_num_none" to "Обычный",
+            "large_num_scientific" to "Научный",
+            "large_num_words" to "Сокращения"
         ),
         "uk" to mapOf(
             "app_name" to "MD3 Калькулятор",

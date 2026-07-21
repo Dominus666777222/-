@@ -79,12 +79,6 @@ class CalculatorViewModel(
         private set
     var isCalculated by mutableStateOf(false)
 
-    // --- Column Division State ---
-    var isColumnDivisionActive by mutableStateOf(false)
-    var colDivisionDividend by mutableStateOf("125")
-    var colDivisionDivisor by mutableStateOf("5")
-    var activeColDivisionField by mutableStateOf(0) // 0 for dividend, 1 for divisor
-
     // --- Tools Editing State ---
     var isEditMode by mutableStateOf(false)
 
@@ -268,52 +262,6 @@ class CalculatorViewModel(
     // ==========================================
 
     fun onCalculatorKeyPress(key: String) {
-        if (isColumnDivisionActive) {
-            when (key) {
-                "C" -> {
-                    if (activeColDivisionField == 0) colDivisionDividend = "" else colDivisionDivisor = ""
-                }
-                "⌫" -> {
-                    if (activeColDivisionField == 0) {
-                        if (colDivisionDividend.isNotEmpty()) colDivisionDividend = colDivisionDividend.dropLast(1)
-                    } else {
-                        if (colDivisionDivisor.isNotEmpty()) colDivisionDivisor = colDivisionDivisor.dropLast(1)
-                    }
-                }
-                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" -> {
-                    if (activeColDivisionField == 0) {
-                        if (colDivisionDividend == "0") colDivisionDividend = key else colDivisionDividend += key
-                    } else {
-                        if (colDivisionDivisor == "0") colDivisionDivisor = key else colDivisionDivisor += key
-                    }
-                }
-                "±" -> {
-                    if (activeColDivisionField == 0) {
-                        if (colDivisionDividend.startsWith("-")) {
-                            colDivisionDividend = colDivisionDividend.substring(1)
-                        } else if (colDivisionDividend.isNotEmpty()) {
-                            colDivisionDividend = "-$colDivisionDividend"
-                        }
-                    } else {
-                        if (colDivisionDivisor.startsWith("-")) {
-                            colDivisionDivisor = colDivisionDivisor.substring(1)
-                        } else if (colDivisionDivisor.isNotEmpty()) {
-                            colDivisionDivisor = "-$colDivisionDivisor"
-                        }
-                    }
-                }
-                "÷R" -> {
-                    isColumnDivisionActive = false
-                }
-                else -> {
-                    if (key == "=" || key == "🔬" || key == "🧮") {
-                        isColumnDivisionActive = false
-                    }
-                }
-            }
-            return
-        }
-
         isCalculatorError = false
         if (key != "=") {
             isCalculated = false
@@ -354,7 +302,7 @@ class CalculatorViewModel(
                 val appendKey = when (key) {
                     "sin", "cos", "tan", "ln", "log" -> "$key("
                     "√" -> "√("
-                    "mod" -> "%"
+                    "mod", "%" -> "%"
                     "x²" -> "^2"
                     else -> key
                 }
@@ -1102,53 +1050,7 @@ class CalculatorViewModel(
     // History Actions
     // ==========================================
 
-    // --- Large Number and Long Division Math Helpers ---
-    data class LongDivisionStep(
-        val currentDividend: String,
-        val subtractValue: String,
-        val remainder: String,
-        val stepQuotient: Int,
-        val padding: Int
-    )
-
-    fun solveLongDivision(dividendStr: String, divisorStr: String): List<LongDivisionStep> {
-        val dividendLong = dividendStr.toLongOrNull() ?: return emptyList()
-        val divisorLong = divisorStr.toLongOrNull() ?: return emptyList()
-        if (divisorLong == 0L) return emptyList()
-        
-        val steps = mutableListOf<LongDivisionStep>()
-        val dividend = kotlin.math.abs(dividendLong).toString()
-        val divisor = kotlin.math.abs(divisorLong)
-        
-        var currentPart = ""
-        var remainder = 0L
-        
-        for (i in dividend.indices) {
-            currentPart += dividend[i]
-            val currentVal = currentPart.toLong()
-            if (currentVal >= divisor || (i == dividend.length - 1 && steps.isEmpty())) {
-                val quotientDigit = currentVal / divisor
-                val subtractVal = quotientDigit * divisor
-                remainder = currentVal - subtractVal
-                
-                steps.add(
-                    LongDivisionStep(
-                        currentDividend = currentVal.toString(),
-                        subtractValue = subtractVal.toString(),
-                        remainder = remainder.toString(),
-                        stepQuotient = quotientDigit.toInt(),
-                        padding = i - currentVal.toString().length + 1
-                    )
-                )
-                currentPart = remainder.toString()
-                if (currentPart == "0") {
-                    currentPart = ""
-                }
-            }
-        }
-        return steps
-    }
-
+    // --- Large Number Math Helpers ---
     fun formatCalculatorResult(resultStr: String): String {
         if (resultStr.startsWith("Error") || resultStr.isBlank()) return resultStr
         

@@ -69,9 +69,10 @@ jobs:
     - name: Locate and Prepare APK
       id: locate_apk
       run: |
-        if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-          echo "Found release APK!"
-          cp app/build/outputs/apk/release/app-release.apk GoydaCalc_1_5.apk
+        APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+        if [ -n "$APK_PATH" ]; then
+          echo "Found release APK at $APK_PATH"
+          cp "$APK_PATH" GoydaCalc_1_5.apk
           echo "signed=true" >> $GITHUB_OUTPUT
         else
           echo "Error: No release APK found!"
