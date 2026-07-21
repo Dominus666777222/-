@@ -11,12 +11,12 @@ object MathEvaluator {
      * Supports basic operators: +, -, ×, ÷, %
      * Supports scientific functions: sin, cos, tan, ln, log, √, ^, π, e, (, )
      */
-    fun evaluate(expression: String): String {
+    fun evaluate(expression: String, isRadian: Boolean = false): String {
         if (expression.isBlank()) return ""
         
         try {
             val normalized = preprocess(expression)
-            val resultValue = parseExpression(normalized)
+            val resultValue = parseExpression(normalized, isRadian)
             
             if (resultValue.isNaN()) return "Error"
             if (resultValue.isInfinite()) return "Error: Infinite"
@@ -53,8 +53,8 @@ object MathEvaluator {
         return result.toString()
     }
 
-    private fun parseExpression(str: String): Double {
-        return ExpressionParser(str).parse()
+    private fun parseExpression(str: String, isRadian: Boolean = false): Double {
+        return ExpressionParser(str, isRadian).parse()
     }
 
     private fun formatResult(value: Double): String {
@@ -67,7 +67,7 @@ object MathEvaluator {
         return scaled.toPlainString()
     }
 
-    private class ExpressionParser(val str: String) {
+    private class ExpressionParser(val str: String, val isRadian: Boolean = false) {
         var pos = -1
         var ch = 0
 
@@ -154,9 +154,20 @@ object MathEvaluator {
                     val arg = parseFactor()
                     x = when (func) {
                         "sqrt", "√" -> sqrt(arg)
-                        "sin" -> sin(Math.toRadians(arg))
-                        "cos" -> cos(Math.toRadians(arg))
-                        "tan" -> tan(Math.toRadians(arg))
+                        "sin" -> if (isRadian) sin(arg) else sin(Math.toRadians(arg))
+                        "cos" -> if (isRadian) cos(arg) else cos(Math.toRadians(arg))
+                        "tan" -> if (isRadian) tan(arg) else tan(Math.toRadians(arg))
+                        "asin" -> if (isRadian) asin(arg) else Math.toDegrees(asin(arg))
+                        "acos" -> if (isRadian) acos(arg) else Math.toDegrees(acos(arg))
+                        "atan" -> if (isRadian) atan(arg) else Math.toDegrees(atan(arg))
+                        "sinh" -> sinh(arg)
+                        "cosh" -> cosh(arg)
+                        "tanh" -> tanh(arg)
+                        "abs" -> abs(arg)
+                        "exp" -> exp(arg)
+                        "ceil" -> ceil(arg)
+                        "floor" -> floor(arg)
+                        "round" -> round(arg)
                         "log" -> log10(arg)
                         "ln" -> ln(arg)
                         else -> throw RuntimeException("Unknown function: $func")

@@ -366,7 +366,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Info Card with Version 2.0.0
+            // Info Card with Version 2.1.0
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Card(
@@ -389,7 +389,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${if (lang == "ru") "Версия" else "Version"} 2.0.0",
+                            text = "${if (lang == "ru") "Версия" else "Version"} 2.1.0",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )

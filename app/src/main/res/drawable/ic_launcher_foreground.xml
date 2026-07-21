@@ -3,6 +3,6 @@
     <item
         android:width="66dp"
         android:height="66dp"
-        android:drawable="@drawable/img_rat_app_icon_1784217426869"
+        android:drawable="@drawable/sticker"
         android:gravity="center" />
 </layer-list>

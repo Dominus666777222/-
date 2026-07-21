@@ -52,6 +52,8 @@ import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.CalculatorViewModel
 import com.example.ui.viewmodel.CalculatorViewModelFactory
 import com.example.util.Translator
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -106,50 +108,54 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
-                            val screenOrder = listOf(
-                                AppScreen.Calculator,
-                                AppScreen.Tools,
-                                AppScreen.Graphing,
-                                AppScreen.Settings,
-                                AppScreen.History
-                            )
-                            AnimatedContent(
-                                targetState = currentScreen,
-                                transitionSpec = {
-                                    val initialIdx = screenOrder.indexOf(initialState).coerceAtLeast(0)
-                                    val targetIdx = screenOrder.indexOf(targetState).coerceAtLeast(0)
-                                    if (targetIdx > initialIdx) {
-                                        (slideInHorizontally(
-                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                        ) { width -> (width * 0.12f).toInt() } + fadeIn(
-                                            animationSpec = tween(durationMillis = 280)
-                                        )) togetherWith (slideOutHorizontally(
-                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                        ) { width -> (-width * 0.12f).toInt() } + fadeOut(
-                                            animationSpec = tween(durationMillis = 140)
-                                        ))
-                                    } else {
-                                        (slideInHorizontally(
-                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                        ) { width -> (-width * 0.12f).toInt() } + fadeIn(
-                                            animationSpec = tween(durationMillis = 280)
-                                        )) togetherWith (slideOutHorizontally(
-                                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                                        ) { width -> (width * 0.12f).toInt() } + fadeOut(
-                                            animationSpec = tween(durationMillis = 140)
-                                        ))
-                                    }
-                                },
-                                label = "screen_transition",
-                                modifier = Modifier.fillMaxSize()
-                            ) { screen ->
-                                when (screen) {
-                                    AppScreen.Calculator -> CalculatorScreen(viewModel = viewModel)
-                                    AppScreen.Graphing -> GraphingScreen(viewModel = viewModel)
-                                    AppScreen.Tools -> ToolsHubScreen(viewModel = viewModel)
-                                    AppScreen.Settings -> SettingsScreen(viewModel = viewModel)
-                                    AppScreen.History -> HistoryScreen(viewModel = viewModel)
-                                }
+                            // Calculator Screen
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .alpha(if (currentScreen == AppScreen.Calculator) 1f else 0f)
+                                    .then(if (currentScreen == AppScreen.Calculator) Modifier else Modifier.pointerInput(Unit) {})
+                            ) {
+                                CalculatorScreen(viewModel = viewModel)
+                            }
+
+                            // Graphing Screen
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .alpha(if (currentScreen == AppScreen.Graphing) 1f else 0f)
+                                    .then(if (currentScreen == AppScreen.Graphing) Modifier else Modifier.pointerInput(Unit) {})
+                            ) {
+                                GraphingScreen(viewModel = viewModel)
+                            }
+
+                            // Tools Screen
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .alpha(if (currentScreen == AppScreen.Tools) 1f else 0f)
+                                    .then(if (currentScreen == AppScreen.Tools) Modifier else Modifier.pointerInput(Unit) {})
+                            ) {
+                                ToolsHubScreen(viewModel = viewModel)
+                            }
+
+                            // Settings Screen
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .alpha(if (currentScreen == AppScreen.Settings) 1f else 0f)
+                                    .then(if (currentScreen == AppScreen.Settings) Modifier else Modifier.pointerInput(Unit) {})
+                            ) {
+                                SettingsScreen(viewModel = viewModel)
+                            }
+
+                            // History Screen
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .alpha(if (currentScreen == AppScreen.History) 1f else 0f)
+                                    .then(if (currentScreen == AppScreen.History) Modifier else Modifier.pointerInput(Unit) {})
+                            ) {
+                                HistoryScreen(viewModel = viewModel)
                             }
                         }
                     }
