@@ -366,7 +366,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Info Card with Version 1.5
+            // Info Card with Version 2.0.0
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Card(
@@ -382,14 +382,14 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = if (lang == "ru") "MD3 Мульти-Калькулятор" else "MD3 Multi-Calculator",
+                            text = if (lang == "ru") "Goyda калькулятор" else "Goyda calculator",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${if (lang == "ru") "Версия" else "Version"} 1.5",
+                            text = "${if (lang == "ru") "Версия" else "Version"} 2.0.0",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )

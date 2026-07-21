@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "GoydaCalc_1_5"
+rootProject.name = "GoydaCalculator"
 
 include(":app")

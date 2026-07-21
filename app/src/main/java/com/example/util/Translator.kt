@@ -4,7 +4,7 @@ object Translator {
 
     private val translations = mapOf(
         "en" to mapOf(
-            "app_name" to "MD3 calc",
+            "app_name" to "Goyda calculator",
             "calculator" to "Calculator",
             "graphing" to "Graphing",
             "converter" to "Converter",
@@ -92,7 +92,7 @@ object Translator {
             "large_num_words" to "Words"
         ),
         "ru" to mapOf(
-            "app_name" to "MD3 калькулятор",
+            "app_name" to "Goyda калькулятор",
             "calculator" to "Калькулятор",
             "graphing" to "Графики",
             "converter" to "Конвертер",
@@ -180,7 +180,7 @@ object Translator {
             "large_num_words" to "Сокращения"
         ),
         "uk" to mapOf(
-            "app_name" to "MD3 Калькулятор",
+            "app_name" to "Goyda Калькулятор",
             "calculator" to "Калькулятор",
             "converter" to "Конвертер",
             "bmi" to "ІМТ",
@@ -256,7 +256,7 @@ object Translator {
             "to" to "в"
         ),
         "be" to mapOf(
-            "app_name" to "MD3 Калькулятар",
+            "app_name" to "Goyda Калькулятар",
             "calculator" to "Калькулятар",
             "converter" to "Канвертар",
             "bmi" to "ІМТ",
@@ -332,7 +332,7 @@ object Translator {
             "to" to "у"
         ),
         "kk" to mapOf(
-            "app_name" to "MD3 Калькулятор",
+            "app_name" to "Goyda Калькулятор",
             "calculator" to "Калькулятор",
             "converter" to "Конвертер",
             "bmi" to "ИМТ",
@@ -408,7 +408,7 @@ object Translator {
             "to" to "->"
         ),
         "es" to mapOf(
-            "app_name" to "Calculadora MD3",
+            "app_name" to "Calculadora Goyda",
             "calculator" to "Calculadora",
             "converter" to "Conversor",
             "bmi" to "IMC",
@@ -484,7 +484,7 @@ object Translator {
             "to" to "a"
         ),
         "pl" to mapOf(
-            "app_name" to "Kalkulator MD3",
+            "app_name" to "Kalkulator Goyda",
             "calculator" to "Kalkulator",
             "converter" to "Konwerter",
             "bmi" to "BMI",
@@ -560,7 +560,7 @@ object Translator {
             "to" to "na"
         ),
         "de" to mapOf(
-            "app_name" to "MD3 Rechner",
+            "app_name" to "Goyda Rechner",
             "calculator" to "Rechner",
             "converter" to "Konverter",
             "bmi" to "BMI",
